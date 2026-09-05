@@ -62,8 +62,9 @@ def get_save_folder(provenance_path: str = "") -> str:
     provenance_path: file path to parent image of this image
     """
     if provenance_path:
-        p: str = os.path.dirname(os.path.abspath(provenance_path))
-        if os.path.exists(p) and os.access(p, os.W_OK):
+        ap = os.path.abspath(provenance_path)
+        p: str = os.path.dirname(ap)
+        if os.path.exists(ap) and os.path.exists(p) and os.access(p, os.W_OK):
             return p
 
     for key in ["latest_save_folder", "latest_load_folder"]:
