@@ -163,6 +163,12 @@ class VimageMainWindow(Ui_MainWindow, QtWidgets.QMainWindow):
             self.actionNone,
         ):
             self.numerals_group.addAction(num)
+        if PixelNumerals.DEFAULT == PixelNumerals.DECIMAL:
+            self.actionDecimal.setChecked(True)
+        elif PixelNumerals.DEFAULT == PixelNumerals.HEXADECIMAL:
+            self.actionHexadecimal.setChecked(True)
+        else:
+            self.actionNone.setChecked(True)
         # Add image list progress label to toolbar
         self.list_label = QtWidgets.QLabel("0/0")
         self.list_label.setMinimumWidth(40)

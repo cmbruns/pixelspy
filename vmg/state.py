@@ -54,7 +54,7 @@ class ViewState(
         self.show_center_guides = False
         self.anisotropic_filtering = True
         self.texture_wrap = GL.GL_CLAMP_TO_EDGE
-        self.pixel_numerals = PixelNumerals.HEXADECIMAL
+        self.pixel_numerals = PixelNumerals.DEFAULT
         # self.input_is_linear = False
 
     @property
