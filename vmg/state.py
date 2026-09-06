@@ -6,8 +6,9 @@ import numpy
 from numpy.typing import NDArray
 from PySide6 import QtCore, QtGui
 from PySide6.QtCore import QPoint, QSize, QObject, QPointF
-from PySide6.QtGui import Qt
+from PySide6.QtGui import Qt, QAction
 
+from vmg.action.copy_pixel_action import CopyPixelAction, copy_pixel_value
 from vmg.frame import DimensionsQwn, LocationHpd, LocationUsr, LocationNic, LocationOpx, LocationGeo, \
     LocationPrj, LocationQwn, LocationRelative, DimensionsOpx
 from vmg.interfaces import TiledImageLike, RenderStateLike, InputFormat, DemosaicMethod
@@ -34,6 +35,7 @@ class ViewState(
     def __init__(self, window_size: QSize):
         super().__init__()
         self.vss = ViewStateSignaller()
+        self._copy_pixel_action = CopyPixelAction(self.vss)
         self._background_color = [0.5, 0.5, 0.5, 0]
         self.brightness = 0.0  # EV
         self.demosaic_method = DemosaicMethod.DEFAULT
@@ -100,6 +102,22 @@ class ViewState(
     def context_menu_actions(self, qpoint: QPoint) -> list:
         result = []
         p_opx = self.opx_for_qpoint(qpoint)
+        px, py = int(p_opx.x), int(p_opx.y)
+        try:
+            color = self.image.array[py, px]
+            try:
+                color[0]
+            except IndexError:
+                # Single channel needs special care.
+                color = numpy.array([color], dtype=self.image.array.dtype)
+            try:
+                self._copy_pixel_action.disconnect()
+            except TypeError:
+                pass
+            self._copy_pixel_action.triggered.connect(lambda: copy_pixel_value(color))
+            result.append(self._copy_pixel_action)
+        except IndexError:
+            pass
         result.extend(self.sel_rect.context_menu_actions(
             p_opx,
             self._input_format() != InputFormat.STANDARD_PHOTO))
