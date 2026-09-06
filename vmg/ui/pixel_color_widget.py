@@ -30,7 +30,6 @@ class PixelColorWidget(QWidget):
         font.setStyleHint(QFont.TypeWriter, QFont.PreferMatch)
         font.setFixedPitch(True)
         self.label.setFont(font)
-        print(self.label.font().family())
         self.label.setFixedWidth(self.label.fontMetrics().boundingRect(self.label.text()).width())
         self.colored_square = ColoredSquareWidget(QColor(0, 0, 0, 0))  # Red square
         self.colored_square.setFixedHeight(self.label.sizeHint().height())
