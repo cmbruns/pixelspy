@@ -217,7 +217,7 @@ class ViewState(
                     f"image pixel = [{px}, {py}]",
                     2000,
                 )
-                self.vss.pixel_color_changed.emit(color, self.image.md.upper_bound)
+            self.vss.pixel_color_changed.emit(color, self.image.md.upper_bound)
         return update_display
 
     def mouse_press_event(self, event):

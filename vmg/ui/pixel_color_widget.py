@@ -44,12 +44,20 @@ class PixelColorWidget(QWidget):
             self.label.setText("<no color>")
             self.colored_square.color = QColor(0, 0, 0, 0)
         else:
+            try:
+                if len(color) < 3:
+                    color3 = [color[0]] * 3
+                else:
+                    color3 = color[:3]
+            except TypeError:
+                color = [color]
+                color3 = color * 3
             if format_max <= 255:
                 name = "#" + "".join([f"{r:02X}" for r in color])
-                qcolor = QColor(*color[:3], 255)
+                qcolor = QColor(*color3, 255)
             else:
                 name = "#" + "".join([f"{r:04X}" for r in color])
-                qcolor = QColor(*[r // 256 for r in color[:3]], 255)
+                qcolor = QColor(*[r // 256 for r in color3], 255)
             self.colored_square.color = qcolor
             self.label.setText(name)
 
