@@ -6,7 +6,7 @@ import numpy
 from numpy.typing import NDArray
 from PySide6 import QtCore, QtGui
 from PySide6.QtCore import QPoint, QSize, QObject, QPointF
-from PySide6.QtGui import Qt, QColor
+from PySide6.QtGui import Qt
 
 from vmg.frame import DimensionsQwn, LocationHpd, LocationUsr, LocationNic, LocationOpx, LocationGeo, \
     LocationPrj, LocationQwn, LocationRelative, DimensionsOpx
@@ -217,7 +217,7 @@ class ViewState(
                     f"image pixel = [{px}, {py}]",
                     2000,
                 )
-            self.vss.pixel_color_changed.emit(color, self.image.md.upper_bound)
+            self.vss.pixel_color_changed.emit(color, self.image.md.upper_bound)  # noqa
         return update_display
 
     def mouse_press_event(self, event):

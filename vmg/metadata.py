@@ -161,8 +161,10 @@ class ImageMetadata(ImageMetadataLike):
                 user_comment = exif["UserComment"]  # Already a string
         if "Orientation" in exif:
             orientation_code = int(exif["Orientation"])
-            self.orientation = ExifOrientation(orientation_code)
-            self.rpx_R_opx = rotation_for_exif_orientation[orientation_code]
+            self._update_orientation(orientation_code)
+        elif "Orientation" in tk:
+            orientation_code = int(tk["Orientation"])
+            self._update_orientation(orientation_code)
         # black level, white level
         if "BlackLevel" in tk:
             self._parse_black_level(tk["BlackLevel"])
@@ -273,10 +275,7 @@ class ImageMetadata(ImageMetadataLike):
         for k in exif:
             logger.debug(f"EXIF {k} = '{exif[k]}'")
         orientation_code: int = exif.get("Orientation", 1)
-        self.orientation = ExifOrientation(orientation_code)
-        logger.debug(f"Image EXIF orientation = {self.orientation}")
-        self.rpx_R_opx = rotation_for_exif_orientation.get(orientation_code, numpy.eye(2, dtype=numpy.float32))
-        self.size_opx = DimensionsOpx(*[abs(x) for x in (self.rpx_R_opx.T @ self.size_rpx)])
+        self._update_orientation(orientation_code)
         w, h = self.size_opx
         model = exif.get("Model", "").lower()
         self._update_model(exif.get("Model", ""))
@@ -368,6 +367,12 @@ class ImageMetadata(ImageMetadataLike):
         elif "sm-c200" in low:
             self.inscribed_fov_radians = radians(193.8)  # "SM-C200" 2016 Gear 360
 
+    def _update_orientation(self, orientation_code: int):
+        self.orientation = ExifOrientation(orientation_code)
+        logger.debug(f"Image EXIF orientation = {self.orientation}")
+        self.rpx_R_opx = rotation_for_exif_orientation.get(orientation_code, numpy.eye(2, dtype=numpy.float32))
+        self.size_opx = DimensionsOpx(*[abs(x) for x in (self.rpx_R_opx.T @ self.size_rpx)])
+
     def _parse_bw(self, value) -> tuple[float, float, float]:
         try:
             # If it's a string, convert it to numbers
@@ -426,10 +431,8 @@ class ImageMetadata(ImageMetadataLike):
         self.size_rpx = int(w), int(h)
         self.size_opx = DimensionsOpx(w, h)
         self.channel_count = exif["EXIF:SamplesPerPixel"]
-        orientation_code = exif["EXIF:Orientation"]
-        self.orientation = ExifOrientation(orientation_code)
-        self.rpx_R_opx = rotation_for_exif_orientation.get(orientation_code, numpy.eye(2, dtype=numpy.float32))
-        self.size_opx = DimensionsOpx(*[abs(x) for x in (self.rpx_R_opx.T @ self.size_rpx)])
+        orientation_code: int = exif["EXIF:Orientation"]
+        self._update_orientation(orientation_code)
         # Camera model specific values
         if "EXIF:Model" in exif:
             model = exif["EXIF:Model"]
