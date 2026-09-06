@@ -5,14 +5,14 @@ from PySide6.QtCore import QSettings, QStandardPaths, QDir
 
 # The exhaustive list of extensions your app scanning logic supports
 SUPPORTED_EXTENSIONS = {
-    ".bmp", ".dng", ".heic", ".heif", ".gif",
+    ".bmp", ".dat", ".dng", ".heic", ".heif", ".gif",
     ".pbm", ".pgm", ".ppm", ".png", ".jpg",
     ".jpeg", ".tif", ".tiff", ".webp"
 }
 
 # Unified Open Filter string mapping every single format out-of-the-box
 OPEN_IMAGE_FILTERS = (
-    "Supported Images (*.png *.jpg *.jpeg *.tif *.tiff *.webp *.bmp *.gif *.pbm *.pgm *.ppm *.dng *.heic *.heif);;"
+    "Supported Images (*.png *.jpg *.jpeg *.tif *.tiff *.webp *.bmp *.gif *.pbm *.pgm *.ppm *.dat *.dng *.heic *.heif);;"
     "PNG Images (*.png);;"
     "JPEG Images (*.jpg *.jpeg);;"
     "TIFF Images (*.tif *.tiff);;"
@@ -21,6 +21,7 @@ OPEN_IMAGE_FILTERS = (
     "BMP Images (*.bmp);;"
     "PPM Images (*.ppm *.pgm *.pbm);;"
     "GIF Images (*.gif);;"
+    "Minecraft Maps (*.dat);;"
     "DNG Images (*.dng);;"
     "All files (*)"
 )
@@ -34,6 +35,7 @@ SAVE_IMAGE_FILTERS = (
     "BMP Images (*.bmp);;"
     "PPM Images (*.ppm *.pgm *.pbm);;"
     "GIF Images (*.gif);;"
+    "Minecraft Maps (*.dat);;"
     "All files (*)"
 )
 

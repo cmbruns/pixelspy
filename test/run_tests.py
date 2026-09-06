@@ -4,6 +4,6 @@
 # workaround for python 3.10 and nose
 import collections.abc
 collections.Callable = collections.abc.Callable
-import nose
+import nose2
 
-nose.main()
+nose2.main()

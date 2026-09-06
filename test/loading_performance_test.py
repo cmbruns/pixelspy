@@ -29,7 +29,6 @@ from contextlib import ExitStack
 from io import BytesIO
 import os
 
-import pkg_resources
 import platform
 
 import numpy
@@ -41,8 +40,9 @@ import turbojpeg
 from turbojpeg import TJFLAG_FASTUPSAMPLE, TJFLAG_FASTDCT
 from ctj import *
 
-from vmg.image_data import ImageData
+# from vmg.image_data import ImageData
 from vmg.elapsed_time import ElapsedTime
+from vmg.resources import resource_filename
 
 with ElapsedTime(message="Initialize TurboJPEG", indent=0):
     jpeg = turbojpeg.TurboJPEG()
@@ -95,7 +95,7 @@ def get_file(file_name: str, hot_cache=False):
 
 
 def main():
-    hopper_name = pkg_resources.resource_filename("vmg.images", "hopper.gif")
+    hopper_name = resource_filename("vmg.images", "hopper.gif")
     for file_name in [
         # hopper_name,
         # r"\\diskstation\Public\Pictures\2024\WaterLeak\R0016689.JPG",

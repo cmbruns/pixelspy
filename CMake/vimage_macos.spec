@@ -61,7 +61,7 @@ app = BUNDLE(
     coll,
     name="vimage.app",
     icon="../CMake/vimage2.icns",
-    bundle_identifier=None,
+    bundle_identifier="org.bruns.vimage.app",
     info_plist={
     	"CFBundleDisplayName": "vimage",
 	    "CFBundleExecutable": "vimage",
@@ -117,6 +117,14 @@ app = BUNDLE(
                 'CFBundleTypeName': 'High Efficiency Image File Format',
                 'CFBundleTypeRole': 'Viewer',
                 'LSItemContentTypes': ['public.heic', 'public.heif'],
+                'LSHandlerRank': 'Alternate'
+            },
+
+            # Minecraft map .DAT files
+            {
+                'CFBundleTypeName': 'Minecraft Map Info',
+                'CFBundleTypeRole': 'Viewer',
+                'LSItemContentTypes': ['org.bruns.vimage.minecraft-map'],
                 'LSHandlerRank': 'Alternate'
             },
 

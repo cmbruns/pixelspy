@@ -3,5 +3,5 @@ Type=Application
 Name=vimage
 Exec=vimage %f
 Icon=vimage
-MimeType=image/jpeg;image/png;image/bmp;image/x-adobe-dng;image/heic;image/heif;image/gif;image/x-portable-bitmap;image/x-portable-graymap;image/x-portable-pixmap;image/tiff;image/webp;
+MimeType=image/jpeg;image/png;image/bmp;image/x-adobe-dng;image/heic;image/heif;image/gif;image/x-minecraft-map;image/x-portable-bitmap;image/x-portable-graymap;image/x-portable-pixmap;image/tiff;image/webp;
 Categories=Graphics;Viewer;
