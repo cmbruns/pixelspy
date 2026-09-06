@@ -36,6 +36,7 @@ from vmg.pixel_filter import PixelFilter, PixelNumerals
 from vmg.progress import ProgressStatus, ProgressState
 from vmg.display_projection import DisplayProjection
 from vmg.recent_file import RecentFileList
+from vmg.ui.pixel_color_widget import PixelColorWidget
 from vmg.ui.ui_vimage import Ui_MainWindow
 from vmg.version import __version__
 from vmg.git_hash import vimage_git_hash
@@ -182,6 +183,9 @@ class VimageMainWindow(Ui_MainWindow, QtWidgets.QMainWindow):
         # Add progress bar to status bar
         self.progress_status = ProgressStatus(self)
         self.statusbar.addPermanentWidget(self.progress_status, stretch=0)
+        self.pixel_color = PixelColorWidget(self)
+        self.statusbar.addPermanentWidget(self.pixel_color, stretch=0)
+        self.imageWidgetGL.view_state.vss.pixel_color_changed.connect(self.pixel_color.set_color)
         # Add image dimensions to status bar
         self.size_label = QtWidgets.QLabel("0x0")
         self.size_label.setMinimumWidth(60)

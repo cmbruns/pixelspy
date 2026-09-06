@@ -6,7 +6,7 @@ import numpy
 from numpy.typing import NDArray
 from PySide6 import QtCore, QtGui
 from PySide6.QtCore import QPoint, QSize, QObject, QPointF
-from PySide6.QtGui import Qt
+from PySide6.QtGui import Qt, QColor
 
 from vmg.frame import DimensionsQwn, LocationHpd, LocationUsr, LocationNic, LocationOpx, LocationGeo, \
     LocationPrj, LocationQwn, LocationRelative, DimensionsOpx
@@ -18,6 +18,7 @@ from vmg.selection_box import SelectionBox, CursorHolder
 
 class ViewStateSignaller(QObject):
     cursor_changed = QtCore.Signal(CursorHolder)
+    pixel_color_changed = QtCore.Signal(tuple, int)
     request_message = QtCore.Signal(str, int)
 
 
@@ -196,6 +197,11 @@ class ViewState(
             update_display = True
         else:
             p_qwn = LocationQwn.from_qpoint(event.pos())
+            px, py = int(p_opx.x), int(p_opx.y)
+            try:
+                color = self.image.array[py, px]
+            except IndexError:
+                return update_display
             if self._input_format() in (
                     InputFormat.EQUIRECTANGULAR,
                     InputFormat.DUAL_FISHEYE,
@@ -203,14 +209,15 @@ class ViewState(
             ):
                 p_hpd = self.hpd_for_qwn(p_qwn)
                 self.vss.request_message.emit(  # noqa
-                    f"image pixel = [{int(p_opx.x)}, {int(p_opx.y)}] heading = {p_hpd.heading:.1f}°  pitch = {p_hpd.pitch:.1f}°",
+                    f"image pixel = [{px}, {py}] heading = {p_hpd.heading:.1f}°  pitch = {p_hpd.pitch:.1f}°",
                     2000,
                 )
             else:
                 self.vss.request_message.emit(  # noqa
-                    f"image pixel = [{int(p_opx.x)}, {int(p_opx.y)}]",
+                    f"image pixel = [{px}, {py}]",
                     2000,
                 )
+                self.vss.pixel_color_changed.emit(color, self.image.md.upper_bound)
         return update_display
 
     def mouse_press_event(self, event):
