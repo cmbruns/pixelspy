@@ -1,7 +1,7 @@
 """
-file vimage.py
+file pixelspy.py
 
-Launches the vimage application.
+Launches the PixelSpy application.
 This Python script is the primary entry point for pyinstaller-based packages.
 """
 

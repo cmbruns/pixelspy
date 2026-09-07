@@ -33,7 +33,7 @@ class VimageApp(object):
         # Top level logger must be created before this point (see vmg.__init__.py)
         # with StdIoRedirector():
         with ExceptHook():
-            logger.info("Launching vimage app")
+            logger.info("Launching PixelSpy app")
             app = self.init_app()
             self.run_main_window(app)
 
@@ -68,7 +68,7 @@ class VimageApp(object):
         app.setAttribute(Qt.AA_EnableHighDpiScaling)  # No effect on custom cursor size
         app.setOrganizationName("rotatingpenguin.com")
         app.setApplicationName("vimage")
-        app.setApplicationDisplayName("vimage")
+        app.setApplicationDisplayName("PixelSpy")
         return app
 
 

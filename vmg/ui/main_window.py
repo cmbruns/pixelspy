@@ -487,7 +487,7 @@ class VimageMainWindow(Ui_MainWindow, QtWidgets.QMainWindow):
 
     def showEvent(self, event: QtGui.QShowEvent) -> None:
         now = datetime.now().astimezone()
-        logger.info(f"vimage main window shown at {now.strftime('%H:%M:%S.%f %Z on %x')}")
+        logger.info(f"PixelSpy main window shown at {now.strftime('%H:%M:%S.%f %Z on %x')}")
         region_locale = locale.getdefaultlocale()[0]
         logger.info(f"region locale is {region_locale}")
         gui_locale = os.environ.get("LANG", None)  # Mac and Linux
@@ -539,15 +539,15 @@ class VimageMainWindow(Ui_MainWindow, QtWidgets.QMainWindow):
         abb_hash = abb_hash.replace("-dirty", "")
         abb_hash = abb_hash.replace("-broken", "")
         if "unknown" not in abb_hash:  # Make hyperlink
-            abb_hash = f"<a href=https://github.com/cmbruns/vimage/tree/{abb_hash}>{vimage_git_hash}</a>"
+            abb_hash = f"<a href=https://github.com/cmbruns/pixelspy/tree/{abb_hash}>{vimage_git_hash}</a>"
         else:
             abb_hash = vimage_git_hash
         msg = inspect.cleandoc(f"""
-            <H2>Vimage Image Viewer</H2>
+            <H2>PixelSpy Image Viewer</H2>
             <p>version {__version__}</p>
             <p>git hash: {abb_hash}</p>
-            <p><a href='https://github.com/cmbruns/vimage/issues'>Report an issue</a></p>
-            <p><a href='https://github.com/cmbruns/vimage'>Source code</a></p>
+            <p><a href='https://github.com/cmbruns/PixelSpy/issues'>Report an issue</a></p>
+            <p><a href='https://github.com/cmbruns/PixelSpy'>Source code</a></p>
             <p><b>Maintainer</b>: Christopher Bruns</p>
         """)
         QMessageBox.information(self, "About", msg)
