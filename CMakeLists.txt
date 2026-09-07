@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.12)  # Requires 3.12+ for C++20 support
-project(vimage LANGUAGES CXX)  # CXX because of binary helpers
+project(PixelSpy LANGUAGES CXX)  # CXX because of binary helpers
 
 option(BUILD_BINARY_UTILS "Build binary utilities" OFF)
 option(BUILD_INSTALLER "BuildInstaller" ON)
@@ -18,30 +18,30 @@ if (BUILD_INSTALLER)
 
 # Remember to manually update version here every build
 # Path to the version file inside your source tree
-set(VIMAGE_VERSION_FILE "${CMAKE_SOURCE_DIR}/vmg/version.py")
+set(PIXELSPY_VERSION_FILE "${CMAKE_SOURCE_DIR}/vmg/version.py")
 
 # Read the file
-file(READ "${VIMAGE_VERSION_FILE}" VIMAGE_VERSION_PY)
+file(READ "${PIXELSPY_VERSION_FILE}" PIXELSPY_VERSION_PY)
 
 # Extract the version string from __version__ = "x.y.z"
-string(REGEX MATCH "__version__ *= *\"([^\"]+)\"" _ "${VIMAGE_VERSION_PY}")
-set(VIMAGE_VERSION "${CMAKE_MATCH_1}")
+string(REGEX MATCH "__version__ *= *\"([^\"]+)\"" _ "${PIXELSPY_VERSION_PY}")
+set(PIXELSPY_VERSION "${CMAKE_MATCH_1}")
 
-message(STATUS "vimage version: ${VIMAGE_VERSION}")
+message(STATUS "PixelSpy version: ${PIXELSPY_VERSION}")
 
 # Split into major/minor/patch
-string(REGEX MATCH "([0-9]+)\\.([0-9]+)\\.([0-9]+)" _ "${VIMAGE_VERSION}")
-set(VIMAGE_VERSION_MAJOR "${CMAKE_MATCH_1}")
-set(VIMAGE_VERSION_MINOR "${CMAKE_MATCH_2}")
-set(VIMAGE_VERSION_PATCH "${CMAKE_MATCH_3}")
+string(REGEX MATCH "([0-9]+)\\.([0-9]+)\\.([0-9]+)" _ "${PIXELSPY_VERSION}")
+set(PIXELSPY_VERSION_MAJOR "${CMAKE_MATCH_1}")
+set(PIXELSPY_VERSION_MINOR "${CMAKE_MATCH_2}")
+set(PIXELSPY_VERSION_PATCH "${CMAKE_MATCH_3}")
 
-message(STATUS "vimage version components: "
-    "${VIMAGE_VERSION_MAJOR}.${VIMAGE_VERSION_MINOR}.${VIMAGE_VERSION_PATCH}")
+message(STATUS "PixelSpy version components: "
+    "${PIXELSPY_VERSION_MAJOR}.${PIXELSPY_VERSION_MINOR}.${PIXELSPY_VERSION_PATCH}")
 
 # Feed into CPACK
-set(CPACK_PACKAGE_VERSION_MAJOR "${VIMAGE_VERSION_MAJOR}")
-set(CPACK_PACKAGE_VERSION_MINOR "${VIMAGE_VERSION_MINOR}")
-set(CPACK_PACKAGE_VERSION_PATCH "${VIMAGE_VERSION_PATCH}")
+set(CPACK_PACKAGE_VERSION_MAJOR "${PIXELSPY_VERSION_MAJOR}")
+set(CPACK_PACKAGE_VERSION_MINOR "${PIXELSPY_VERSION_MINOR}")
+set(CPACK_PACKAGE_VERSION_PATCH "${PIXELSPY_VERSION_PATCH}")
 
 mark_as_advanced(
     CMAKE_BACKWARDS_COMPATIBILITY
@@ -61,7 +61,7 @@ if(GIT_FOUND)
         OUTPUT_VARIABLE GIT_HASH
         OUTPUT_STRIP_TRAILING_WHITESPACE
     )
-    message(STATUS "vimage git hash = ${GIT_HASH}")
+    message(STATUS "PixelSpy git hash = ${GIT_HASH}")
     # Put one copy in the scripts folder for dev use
     # This file will be git ignored, to avoid endless loop
     configure_file(
@@ -129,8 +129,8 @@ if (WIN32)
   install(DIRECTORY "${CMAKE_BINARY_DIR}/dist/vimage/"
       DESTINATION "."
   )
-  set_property(INSTALL "vimage.exe"
-      PROPERTY CPACK_START_MENU_SHORTCUTS "vimage"
+  set_property(INSTALL "PixelSpy"
+      PROPERTY CPACK_START_MENU_SHORTCUTS "PixelSpy"
   )
 elseif(APPLE)
   install(DIRECTORY "${CMAKE_BINARY_DIR}/dist/vimage.app"
@@ -149,7 +149,7 @@ elseif(UNIX)
   # 2. Define the symlink target path (relative to where the symlink will live)
   # From 'bin/', you must go up one folder to reach 'libexec/'
   set(SYMLINK_TARGET "../libexec/vimage/vimage")
-  set(SYMLINK_NAME "vimage")
+  set(SYMLINK_NAME "PixelSpy")
   # 3. Create the symlink physically inside the build directory at configure time
   execute_process(
     COMMAND ${CMAKE_COMMAND} -E create_symlink
@@ -181,8 +181,8 @@ endif()
 set(CPACK_RESOURCE_FILE_LICENSE "${CMAKE_SOURCE_DIR}/LICENSE.txt")
 set(CPACK_PACKAGE_EXECUTABLES "vimage;vimage")
 set(CPACK_PACKAGE_CONTACT "zeo1@rotatingpenguin.com")
-set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "vimage desktop image file viewer")
-set(CPACK_PACKAGE_DESCRIPTION "vimage desktop image file viewer")
+set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "PixelSpy desktop image file viewer")
+set(CPACK_PACKAGE_DESCRIPTION "PixelSpy desktop image file viewer")
 
 if (WIN32)
   set(CPACK_GENERATOR WIX)
@@ -214,8 +214,8 @@ elseif(UNIX)
         set(CPACK_RPM_PACKAGE_LICENSE "MIT")
         set(CPACK_RPM_PACKAGE_GROUP "Applications/Graphics")
         set(CPACK_RPM_PACKAGE_RELEASE 1)
-        set(CPACK_RPM_PACKAGE_SUMMARY "vimage viewer")
-        set(CPACK_RPM_PACKAGE_DESCRIPTION "vimage desktop image viewer")
+        set(CPACK_RPM_PACKAGE_SUMMARY "PixelSpy viewer")
+        set(CPACK_RPM_PACKAGE_DESCRIPTION "PixelSpy desktop image viewer")
         set(CPACK_RPM_PACKAGE_REQUIRES "")
         # Avoid troublesome automatic dependency detection
         set(CPACK_RPM_PACKAGE_AUTOREQPROV "no")
