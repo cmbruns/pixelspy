@@ -1,3 +1,7 @@
+import os
+import subprocess
+import sys
+
 from OpenGL import GL
 from math import acos, asin, atan2, cos, degrees, pi, radians, sin
 from typing import Optional
@@ -5,8 +9,8 @@ from typing import Optional
 import numpy
 from numpy.typing import NDArray
 from PySide6 import QtCore, QtGui
-from PySide6.QtCore import QPoint, QSize, QObject, QPointF
-from PySide6.QtGui import Qt, QAction
+from PySide6.QtCore import QMimeData, QPoint, QSize, QObject, QPointF, QUrl
+from PySide6.QtGui import Qt, QAction, QDesktopServices, QGuiApplication
 
 from vmg.action.copy_pixel_action import CopyPixelAction, copy_pixel_value
 from vmg.frame import DimensionsQwn, LocationHpd, LocationUsr, LocationNic, LocationOpx, LocationGeo, \
@@ -23,6 +27,88 @@ class ViewStateSignaller(QObject):
     request_message = QtCore.Signal(str, int)
 
 
+class ViewContextMenu(QObject):
+    def __init__(self, state, parent=None):
+        super().__init__(parent)
+        self.state = state
+        self.pixel_heading_action = QAction(f"Pixel [{0}, {0}]:", self)
+        self.pixel_heading_action.setSeparator(True)  # It's just a label
+        self.center_point_action = QtGui.QAction(text="Center on pixel", parent=self)
+        self.copy_pixel_action = CopyPixelAction(self)
+        self.image_heading_action = QAction(f"Image:")
+        self.image_heading_action.setSeparator(True)
+
+    def actions(self, qpoint):
+        if self.state.image is None:
+            return
+        md = self.state.image.md
+        array = self.state.image.array
+        p_opx = self.state.opx_for_qpoint(qpoint)
+        try:
+            rx, ry = md.rpx_for_opx(p_opx)
+            color = array[ry, rx]
+            try:
+                color[0]
+            except IndexError:
+                # Single channel needs special care.
+                color = numpy.array([color], dtype=array.dtype)
+            for action in self.copy_pixel_action, self.center_point_action:
+                try:
+                    action.disconnect()
+                except TypeError:
+                    pass
+            # Pixel actions:
+            #  Pixel Heading
+            self.pixel_heading_action.setText(f"Pixel [{int(p_opx[0])}, {int(p_opx[1])}]:")
+            yield self.pixel_heading_action
+            #  Center on pixel
+            self.center_point_action.triggered.connect(lambda: self.state.center_on_point(qpoint))  # noqa
+            yield self.center_point_action
+            #  Copy pixel color
+            self.copy_pixel_action.triggered.connect(lambda: copy_pixel_value(color))
+            yield self.copy_pixel_action
+        except IndexError:
+            pass
+        for action in self.state.sel_rect.context_menu_actions(
+            p_opx,
+            md.input_format != InputFormat.STANDARD_PHOTO,
+        ):
+            yield action
+        # Image actions:
+        brief = os.path.basename(md.file_name)
+        self.image_heading_action.setText(f"Image: {brief}")
+        yield self.image_heading_action
+        if os.path.exists(md.file_name):
+            show_file_action = QAction("Show in File Manager", self)
+            show_file_action.triggered.connect(
+                lambda: self.show_in_file_manager(md.file_name))
+            yield show_file_action
+        copy_file_path_action = QAction("Copy File Path", self)
+        copy_file_path_action.triggered.connect(lambda: self.copy_file_path(md.file_name))
+        yield copy_file_path_action
+
+    @staticmethod
+    def copy_file_path(path: str):
+        mime = QMimeData()
+        mime.setText(path)  # 1) plain text
+        url = QUrl.fromLocalFile(path)  # 2) URI list
+        mime.setUrls([url])
+        # 3. Windows native file path (optional but nice)
+        # Qt will auto-generate this from setUrls(), but you can force it:
+        mime.setData('application/x-qt-windows-mime;value="FileNameW"',
+                     path.encode("utf-16le"))
+        QGuiApplication.clipboard().setMimeData(mime)
+
+    @staticmethod
+    def show_in_file_manager(path: str):
+        if sys.platform.startswith("win"):
+            subprocess.run(["explorer", "/select,", path], check=False)
+        elif sys.platform == "darwin":
+            subprocess.run(["open", "-R", path], check=False)
+        else:
+            QDesktopServices.openUrl(QUrl.fromLocalFile(os.path.dirname(path)))
+
+
 class ViewState(
     # QObject,
     RenderStateLike,  # only during linting, not runtime
@@ -35,7 +121,7 @@ class ViewState(
     def __init__(self, window_size: QSize):
         super().__init__()
         self.vss = ViewStateSignaller()
-        self._copy_pixel_action = CopyPixelAction(self.vss)
+        self.context_menu = ViewContextMenu(self)
         self._background_color = [0.5, 0.5, 0.5, 0]
         self.brightness = 0.0  # EV
         self.demosaic_method = DemosaicMethod.DEFAULT
@@ -101,27 +187,8 @@ class ViewState(
 
     def context_menu_actions(self, qpoint: QPoint) -> list:
         result = []
-        p_opx = self.opx_for_qpoint(qpoint)
-        self.image.md.rpx_for_opx(p_opx)
-        try:
-            rx, ry = self.image.md.rpx_for_opx(p_opx)
-            color = self.image.array[ry, rx]
-            try:
-                color[0]
-            except IndexError:
-                # Single channel needs special care.
-                color = numpy.array([color], dtype=self.image.array.dtype)
-            try:
-                self._copy_pixel_action.disconnect()
-            except TypeError:
-                pass
-            self._copy_pixel_action.triggered.connect(lambda: copy_pixel_value(color))
-            result.append(self._copy_pixel_action)
-        except IndexError:
-            pass
-        result.extend(self.sel_rect.context_menu_actions(
-            p_opx,
-            self._input_format() != InputFormat.STANDARD_PHOTO))
+        for action in self.context_menu.actions(qpoint):
+            result.append(action)
         return result
 
     @QtCore.Slot(CursorHolder)  # noqa

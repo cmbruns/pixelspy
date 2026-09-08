@@ -269,24 +269,12 @@ class ImageWidgetGL(QtOpenGLWidgets.QOpenGLWidget):
     @QtCore.Slot(QPoint)
     def show_context_menu(self, qpoint: QPoint):
         menu = QtWidgets.QMenu("Context menu", parent=self)
-        menu.addSeparator()
         if self.image is not None:
-            opx = self.view_state.opx_for_qpoint(qpoint)
-            heading_action = QAction(f"Pixel [{int(opx[0])}, {int(opx[1])}]:", self)
-            heading_action.setSeparator(True)  # It's just a label
-            menu.addAction(heading_action)
-            menu.addSeparator()
-            #
-            center_point_action = QtGui.QAction(text="Center on this point", parent=self)
-            center_point_action.triggered.connect(lambda: self.center_on_point(qpoint))  # noqa
-            menu.addAction(center_point_action)
-            #
-            reset_view_action = QtGui.QAction(text="Reset view", parent=self)
-            reset_view_action.triggered.connect(lambda: self.reset_view())  # noqa
-            menu.addAction(reset_view_action)
-            #
             for action in self.view_state.context_menu_actions(qpoint):
                 menu.addAction(action)
+        reset_view_action = QtGui.QAction(text="Reset view", parent=self)
+        reset_view_action.triggered.connect(lambda: self.reset_view())  # noqa
+        menu.addAction(reset_view_action)
         menu.addSeparator()
         menu.addAction(QtGui.QAction("Cancel [ESC]", self))
         menu.exec(self.mapToGlobal(qpoint))

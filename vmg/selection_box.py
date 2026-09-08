@@ -75,7 +75,7 @@ class SelectionBox(QtCore.QObject):
     def context_menu_actions(self, p_omp: LocationOpx, is_360: bool) -> list:
         result = []
         if not is_360:
-            start_action = StartRectAction()
+            start_action = StartRectAction(self)
             start_action.triggered.connect(lambda: self.begin(p_omp))  # noqa
             result.append(start_action)
         return result
@@ -302,11 +302,12 @@ _rect_icon = None
 
 
 class StartRectAction(QtGui.QAction):
-    def __init__(self):
+    def __init__(self, parent=None):
         global _rect_icon
         if _rect_icon is None:
             _rect_icon = QtGui.QIcon(resource_filename("vmg.images", "box_icon.png"))
         super().__init__(
+            parent=parent,
             text="Start selecting a rectangle here",
             icon=_rect_icon,
         )
