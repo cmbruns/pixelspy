@@ -70,10 +70,6 @@ if(GIT_FOUND)
         @ONLY
         NEWLINE_STYLE UNIX
     )
-    # Put another next to the installed executable for installed use
-    install(FILES "${CMAKE_SOURCE_DIR}/vmg/git_hash.txt"
-      DESTINATION "."
-    )
 endif()
 
 find_program(UIC NAMES PySide6-uic pyside6-uic
