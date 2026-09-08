@@ -326,6 +326,16 @@ class ImageMetadata(ImageMetadataLike):
             except (KeyError, TypeError):
                 pass
 
+    def rpx_for_opx(self, opx):
+        cotc = numpy.array(opx[:2]) / self.size_opx - (0.5, 0.5)  # Normalize and center
+        rtc = self.rpx_R_opx @ cotc + (0.5, 0.5)
+        frpx = rtc * self.size_rpx
+        rpx = [int(x) for x in frpx]
+        sr = self.size_rpx
+        if rpx[0] < 0 or rpx[1] < 0 or rpx[0] >= sr[0] or rpx[1] >= sr[1]:
+            raise IndexError
+        return rpx
+
     def update_pcm_rot_geo(self):
         # Photographer's camera pose
         roll = radians(self.pose_roll_degrees)

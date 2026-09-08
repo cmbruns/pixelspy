@@ -102,9 +102,11 @@ class ViewState(
     def context_menu_actions(self, qpoint: QPoint) -> list:
         result = []
         p_opx = self.opx_for_qpoint(qpoint)
+        self.image.md.rpx_for_opx(p_opx)
         px, py = int(p_opx.x), int(p_opx.y)
         try:
-            color = self.image.array[py, px]
+            rx, ry = self.image.md.rpx_for_opx(p_opx)
+            color = self.image.array[ry, rx]
             try:
                 color[0]
             except IndexError:
@@ -216,8 +218,10 @@ class ViewState(
         else:
             p_qwn = LocationQwn.from_qpoint(event.pos())
             px, py = int(p_opx.x), int(p_opx.y)
+
             try:
-                color = self.image.array[py, px]
+                rx, ry = self.image.md.rpx_for_opx(p_opx)
+                color = self.image.array[ry, rx]
             except IndexError:
                 return update_display
             if self._input_format() in (
