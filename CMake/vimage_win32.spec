@@ -5,7 +5,7 @@ from PyInstaller.building.build_main import Analysis, COLLECT, EXE, PYZ
 block_cipher = None
 
 a = Analysis(
-    scripts=['../scripts/vimage.py'],
+    scripts=['../scripts/pixelspy.py'],
     pathex=["..", ],
     binaries=[
      ('C:/libjpeg-turbo64/bin/jpeg62.dll', '.'),
@@ -45,7 +45,7 @@ exe = EXE(
     a.scripts,
     [],
     exclude_binaries=True,
-    name='vimage',
+    name='PixelSpy',
     debug=False,
     bootloader_ignore_signals=False,
     strip=False,
@@ -65,5 +65,5 @@ coll = COLLECT(
     strip=False,
     upx=True,
     upx_exclude=[],
-    name='vimage'
+    name='PixelSpy'
 )

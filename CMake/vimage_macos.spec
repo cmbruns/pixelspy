@@ -2,7 +2,7 @@
 from PyInstaller.building.build_main import Analysis, BUNDLE, COLLECT, EXE, PYZ
 
 a = Analysis(
-    scripts=['../scripts/vimage.py'],
+    scripts=['../scripts/pixelspy.py'],
     pathex=['../'],
     binaries=[],
     datas=[
@@ -35,7 +35,7 @@ exe = EXE(
     a.scripts,
     [],
     exclude_binaries=True,
-    name='vimage',
+    name='PixelSpy',
     debug=False,
     bootloader_ignore_signals=False,
     strip=False,
@@ -55,19 +55,19 @@ coll = COLLECT(
     strip=False,
     upx=True,
     upx_exclude=[],
-    name='vimage',
+    name='PixelSpy',
 )
 app = BUNDLE(
     coll,
-    name="vimage.app",
+    name="PixelSpy.app",
     icon="../CMake/vimage2.icns",
-    bundle_identifier="org.bruns.vimage.app",
+    bundle_identifier="com.rotatingpenguin.pixelspy.app",
     info_plist={
-    	"CFBundleDisplayName": "vimage",
-	    "CFBundleExecutable": "vimage",
-	    "CFBundleIdentifier": "vimage",
+    	"CFBundleDisplayName": "PixelSpy",
+	    "CFBundleExecutable": "PixelSpy",
+	    "CFBundleIdentifier": "com.rotatingpenguin.pixelspy.app",
 	    "CFBundleInfoDictionaryVersion": "6.0",
-	    "CFBundleName": "vimage",
+	    "CFBundleName": "PixelSpy",
 	    "CFBundlePackageType": "APPL",
 	    "CFBundleShortVersionString": "0.0.0",
 	    "NSHighResolutionCapable": True,
@@ -124,7 +124,7 @@ app = BUNDLE(
             {
                 'CFBundleTypeName': 'Minecraft Map Info',
                 'CFBundleTypeRole': 'Viewer',
-                'LSItemContentTypes': ['org.bruns.vimage.minecraft-map'],
+                'LSItemContentTypes': ['com.rotatingpenguin.pixelspy.minecraft-map'],
                 'LSHandlerRank': 'Alternate'
             },
 

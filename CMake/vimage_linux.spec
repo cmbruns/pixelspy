@@ -37,7 +37,7 @@ else:
     print("WARNING: libturbojpeg.so.0 not found")
 
 a = Analysis(
-    scripts=['../scripts/vimage.py'],
+    scripts=['../scripts/pixelspy.py'],
     pathex=["..", ],
     binaries=binaries,
     datas=[
@@ -76,7 +76,7 @@ exe = EXE(
     a.scripts,
     [],
     exclude_binaries=True,
-    name='vimage',
+    name='PixelSpy',
     debug=False,
     bootloader_ignore_signals=False,
     strip=False,
@@ -96,5 +96,5 @@ coll = COLLECT(
     strip=False,
     upx=True,
     upx_exclude=[],
-    name='vimage'
+    name='PixelSpy'
 )

@@ -80,32 +80,18 @@ find_program(UIC NAMES PySide6-uic pyside6-uic
   HINTS
     ${CMAKE_SOURCE_DIR}/.venv/bin/
     ${CMAKE_SOURCE_DIR}/venv/bin/
+    ${CMAKE_SOURCE_DIR}/.venv/Scripts/
+    ${CMAKE_SOURCE_DIR}/venv/Scripts/
     /Library/Frameworks/Python.framework/Versions/3.14/bin/
     /usr/local/bin/
-)
-add_custom_command(
-    OUTPUT "${CMAKE_SOURCE_DIR}/vmg/ui/ui_vimage.py"
-    COMMAND "${UIC}" vimage.ui -o ui_vimage.py
-    DEPENDS "${CMAKE_SOURCE_DIR}/vmg/ui/vimage.ui"
-    WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}/vmg/ui"
-)
-add_custom_command(
-    OUTPUT "${CMAKE_SOURCE_DIR}/vmg/ui/ui_log.py"
-    COMMAND "${UIC}" vimage.ui -o ui_vimage.py
-    DEPENDS "${CMAKE_SOURCE_DIR}/vmg/ui/log.ui"
-    WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}/vmg/ui"
-)
-add_custom_command(
-    OUTPUT "${CMAKE_SOURCE_DIR}/vmg/ui/ui_lens_parameters.py"
-    COMMAND "${UIC}" vimage.ui -o ui_vimage.py
-    DEPENDS "${CMAKE_SOURCE_DIR}/vmg/ui/lens_parameters_dialog.ui"
-    WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}/vmg/ui"
 )
 
 find_program(PYINSTALLER pyinstaller
     HINTS
       ${CMAKE_SOURCE_DIR}/.venv/bin/
       ${CMAKE_SOURCE_DIR}/venv/bin/
+      ${CMAKE_SOURCE_DIR}/.venv/Scripts/
+      ${CMAKE_SOURCE_DIR}/venv/Scripts/
       /Library/Frameworks/Python.framework/Versions/3.14/bin/
       /usr/local/bin/
 )
@@ -120,35 +106,35 @@ add_custom_target(RunPyInstaller ALL
     COMMAND ${CMAKE_COMMAND} -E remove_directory "${CMAKE_BINARY_DIR}/dist"
     COMMAND ${CMAKE_COMMAND} -E remove_directory "${CMAKE_BINARY_DIR}/build"
     COMMAND ${PYINSTALLER} ${CMAKE_SOURCE_DIR}/CMake/${SPEC_FILE}
-    DEPENDS "${CMAKE_SOURCE_DIR}/CMake/${SPEC_FILE}" "${CMAKE_SOURCE_DIR}/vmg/ui/ui_vimage.py"
+    DEPENDS "${CMAKE_SOURCE_DIR}/CMake/${SPEC_FILE}"
     WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
     COMMENT "Running PyInstaller"
 )
 
 if (WIN32)
-  install(DIRECTORY "${CMAKE_BINARY_DIR}/dist/vimage/"
+  install(DIRECTORY "${CMAKE_BINARY_DIR}/dist/PixelSpy/"
       DESTINATION "."
   )
   set_property(INSTALL "PixelSpy"
       PROPERTY CPACK_START_MENU_SHORTCUTS "PixelSpy"
   )
 elseif(APPLE)
-  install(DIRECTORY "${CMAKE_BINARY_DIR}/dist/vimage.app"
+  install(DIRECTORY "${CMAKE_BINARY_DIR}/dist/PixelSpy.app"
       DESTINATION "."
       USE_SOURCE_PERMISSIONS
   )
 elseif(UNIX)
-  install(DIRECTORY "${CMAKE_BINARY_DIR}/dist/vimage"
+  install(DIRECTORY "${CMAKE_BINARY_DIR}/dist/PixelSpy"
       DESTINATION "libexec"
   )
   # 1. Install your actual program target normally
   install(
-     PROGRAMS "${CMAKE_BINARY_DIR}/dist/vimage/vimage"
+     PROGRAMS "${CMAKE_BINARY_DIR}/dist/PixelSpy/PixelSpy"
      DESTINATION "libexec/vimage"
   )
   # 2. Define the symlink target path (relative to where the symlink will live)
   # From 'bin/', you must go up one folder to reach 'libexec/'
-  set(SYMLINK_TARGET "../libexec/vimage/vimage")
+  set(SYMLINK_TARGET "../libexec/PixelSpy/PixelSpy")
   set(SYMLINK_NAME "PixelSpy")
   # 3. Create the symlink physically inside the build directory at configure time
   execute_process(
@@ -179,7 +165,7 @@ elseif(UNIX)
 endif()
 
 set(CPACK_RESOURCE_FILE_LICENSE "${CMAKE_SOURCE_DIR}/LICENSE.txt")
-set(CPACK_PACKAGE_EXECUTABLES "vimage;vimage")
+set(CPACK_PACKAGE_EXECUTABLES "PixelSpy;PixelSpy")
 set(CPACK_PACKAGE_CONTACT "zeo1@rotatingpenguin.com")
 set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "PixelSpy desktop image file viewer")
 set(CPACK_PACKAGE_DESCRIPTION "PixelSpy desktop image file viewer")

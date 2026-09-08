@@ -2,7 +2,7 @@
 <CPackWiXPatch>
   <CPackWiXFragment Id="#PRODUCT">
 
-    <!-- Launch vimage after install -->
+    <!-- Launch PixelSpy after install -->
     <UI>
       <UIRef Id="$(var.CPACK_WIX_UI_REF)" />
       <Publish Dialog="ExitDialog"
@@ -10,9 +10,9 @@
                Event="DoAction"
                Value="LaunchApplication">WIXUI_EXITDIALOGOPTIONALCHECKBOX = 1 and NOT Installed</Publish>
     </UI>
-    <Property Id="WIXUI_EXITDIALOGOPTIONALCHECKBOXTEXT" Value="Launch vimage" />
+    <Property Id="WIXUI_EXITDIALOGOPTIONALCHECKBOXTEXT" Value="Launch PixelSpy" />
     <Property Id="WIXUI_EXITDIALOGOPTIONALCHECKBOX" Value="1"/>
-    <Property Id="WixShellExecTarget" Value="[#CM_FP_vimage.exe]" />
+    <Property Id="WixShellExecTarget" Value="[#CM_FP_PixelSpy.exe]" />
     <CustomAction Id="LaunchApplication" BinaryKey="WixCA" DllEntry="WixShellExec" Impersonate="yes"/>
 
     <!-- JPEG: .jpg -->
@@ -191,13 +191,13 @@
     </Component>
 
     <!-- Trick to avoid ICE69 when using TargetProperty in file associations -->
-    <SetProperty Id="FileAssociationProperty" Value="[INSTALL_ROOT]vimage.exe" After="CostFinalize" />
+    <SetProperty Id="FileAssociationProperty" Value="[INSTALL_ROOT]PixelSpy.exe" After="CostFinalize" />
 
   </CPackWiXFragment>
 
   <CPackWiXFragment Id="#PRODUCTFEATURE">
 
-    <!-- Always allow "Open with vimage" for all supported types -->
+    <!-- Always allow "Open with PixelSpy" for all supported types -->
     <ComponentRef Id="JpgOpenAssociation" />
     <ComponentRef Id="JpegOpenAssociation" />
     <ComponentRef Id="PngOpenAssociation" />
@@ -217,7 +217,7 @@
     <!-- Optional default file-type associations (installer asks via checkboxes) -->
     <Feature Id="FiletypesFeature"
              Title="Default File Type Associations"
-             Description="Use vimage to open selected image file types by default"
+             Description="Use PixelSpy to open selected image file types by default"
              Display="expand"
              AllowAdvertise="no"
              InstallDefault="local"
@@ -225,7 +225,7 @@
 
       <Feature Id="JpegTypesFeature"
                Title="*.jpg and *.jpeg files"
-               Description="Always use vimage to open JPEG images"
+               Description="Always use PixelSpy to open JPEG images"
                AllowAdvertise="no"
                InstallDefault="local"
                Absent="allow"
@@ -237,7 +237,7 @@
 
       <Feature Id="PngFeature"
                Title="*.png files"
-               Description="Always use vimage to open PNG images"
+               Description="Always use PixelSpy to open PNG images"
                AllowAdvertise="no"
                InstallDefault="local"
                Absent="allow"
@@ -247,7 +247,7 @@
 
       <Feature Id="BmpFeature"
                Title="*.bmp files"
-               Description="Always use vimage to open BMP images"
+               Description="Always use PixelSpy to open BMP images"
                AllowAdvertise="no"
                InstallDefault="local"
                Absent="allow"
@@ -257,7 +257,7 @@
 
       <Feature Id="MinecraftFeature"
                Title="*.dat files"
-               Description="Always use vimage to open Minecraft maps"
+               Description="Always use PixelSpy to open Minecraft maps"
                AllowAdvertise="no"
                InstallDefault="local"
                Absent="allow"
@@ -267,7 +267,7 @@
 
       <Feature Id="DngFeature"
                Title="*.dng files"
-               Description="Always use vimage to open DNG images"
+               Description="Always use PixelSpy to open DNG images"
                AllowAdvertise="no"
                InstallDefault="local"
                Absent="allow"
@@ -277,7 +277,7 @@
 
       <Feature Id="HeicFeature"
                Title="*.heic files"
-               Description="Always use vimage to open HEIC images"
+               Description="Always use PixelSpy to open HEIC images"
                AllowAdvertise="no"
                InstallDefault="local"
                Absent="allow"
@@ -287,7 +287,7 @@
 
       <Feature Id="HeifFeature"
                Title="*.heif files"
-               Description="Always use vimage to open HEIF images"
+               Description="Always use PixelSpy to open HEIF images"
                AllowAdvertise="no"
                InstallDefault="local"
                Absent="allow"
@@ -297,7 +297,7 @@
 
       <Feature Id="GifFeature"
                Title="*.gif files"
-               Description="Always use vimage to open GIF images"
+               Description="Always use PixelSpy to open GIF images"
                AllowAdvertise="no"
                InstallDefault="local"
                Absent="allow"
@@ -307,7 +307,7 @@
 
       <Feature Id="PbmFeature"
                Title="*.pbm files"
-               Description="Always use vimage to open PBM images"
+               Description="Always use PixelSpy to open PBM images"
                AllowAdvertise="no"
                InstallDefault="local"
                Absent="allow"
@@ -317,7 +317,7 @@
 
       <Feature Id="PgmFeature"
                Title="*.pgm files"
-               Description="Always use vimage to open PGM images"
+               Description="Always use PixelSpy to open PGM images"
                AllowAdvertise="no"
                InstallDefault="local"
                Absent="allow"
@@ -327,7 +327,7 @@
 
       <Feature Id="PpmFeature"
                Title="*.ppm files"
-               Description="Always use vimage to open PPM images"
+               Description="Always use PixelSpy to open PPM images"
                AllowAdvertise="no"
                InstallDefault="local"
                Absent="allow"
@@ -337,7 +337,7 @@
 
       <Feature Id="TiffFeature"
                Title="*.tif and *.tiff files"
-               Description="Always use vimage to open TIFF images"
+               Description="Always use PixelSpy to open TIFF images"
                AllowAdvertise="no"
                InstallDefault="local"
                Absent="allow"
@@ -348,7 +348,7 @@
 
       <Feature Id="WebpFeature"
                Title="*.webp files"
-               Description="Always use vimage to open WebP images"
+               Description="Always use PixelSpy to open WebP images"
                AllowAdvertise="no"
                InstallDefault="local"
                Absent="allow"
