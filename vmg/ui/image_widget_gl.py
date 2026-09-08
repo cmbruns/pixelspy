@@ -272,7 +272,9 @@ class ImageWidgetGL(QtOpenGLWidgets.QOpenGLWidget):
         menu.addSeparator()
         if self.image is not None:
             opx = self.view_state.opx_for_qpoint(qpoint)
-            menu.addAction(QAction(f"Pixel [{int(opx[0])}, {int(opx[1])}]:", self))
+            heading_action = QAction(f"Pixel [{int(opx[0])}, {int(opx[1])}]:", self)
+            heading_action.setSeparator(True)  # It's just a label
+            menu.addAction(heading_action)
             menu.addSeparator()
             #
             center_point_action = QtGui.QAction(text="Center on this point", parent=self)

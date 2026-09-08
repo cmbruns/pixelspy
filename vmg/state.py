@@ -103,7 +103,6 @@ class ViewState(
         result = []
         p_opx = self.opx_for_qpoint(qpoint)
         self.image.md.rpx_for_opx(p_opx)
-        px, py = int(p_opx.x), int(p_opx.y)
         try:
             rx, ry = self.image.md.rpx_for_opx(p_opx)
             color = self.image.array[ry, rx]
