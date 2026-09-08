@@ -126,9 +126,9 @@ vec4 catrom(sampler2D image, vec2 textureCoordinate, bool wrap) {
             vec2 tc = texel2 / textureSize(image, 0);
             vec4 rgba;
             if (wrap)
-                rgba = equirect_color(image, tc);
+                rgba = equirect_color(image, tc);  // TODO: needs lod zero maybe?
             else
-                rgba = texture(image, tc);
+                rgba = textureLod(image, tc, 0);  // hard code to zero for Mac
             rgb_weight += wx * wy * rgba.a;
             combined += wx * wy * vec4(rgba.rgb * rgba.a, rgba.a);  // premultiply alpha
         }
