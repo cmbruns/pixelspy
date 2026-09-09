@@ -224,7 +224,7 @@
              Absent="allow">
 
       <Feature Id="JpegTypesFeature"
-               Title="*.jpg and *.jpeg files"
+               Title="*.jpg and *.jpeg images"
                Description="Always use PixelSpy to open JPEG images"
                AllowAdvertise="no"
                InstallDefault="local"
@@ -236,7 +236,7 @@
       </Feature>
 
       <Feature Id="PngFeature"
-               Title="*.png files"
+               Title="*.png images"
                Description="Always use PixelSpy to open PNG images"
                AllowAdvertise="no"
                InstallDefault="local"
@@ -246,7 +246,7 @@
       </Feature>
 
       <Feature Id="BmpFeature"
-               Title="*.bmp files"
+               Title="*.bmp images"
                Description="Always use PixelSpy to open BMP images"
                AllowAdvertise="no"
                InstallDefault="local"
@@ -256,7 +256,7 @@
       </Feature>
 
       <Feature Id="MinecraftFeature"
-               Title="*.dat files"
+               Title="*.dat Minecraft maps"
                Description="Always use PixelSpy to open Minecraft maps"
                AllowAdvertise="no"
                InstallDefault="local"
@@ -266,7 +266,7 @@
       </Feature>
 
       <Feature Id="DngFeature"
-               Title="*.dng files"
+               Title="*.dng raw images"
                Description="Always use PixelSpy to open DNG images"
                AllowAdvertise="no"
                InstallDefault="local"
@@ -276,7 +276,7 @@
       </Feature>
 
       <Feature Id="HeicFeature"
-               Title="*.heic files"
+               Title="*.heic images"
                Description="Always use PixelSpy to open HEIC images"
                AllowAdvertise="no"
                InstallDefault="local"
@@ -286,7 +286,7 @@
       </Feature>
 
       <Feature Id="HeifFeature"
-               Title="*.heif files"
+               Title="*.heif images"
                Description="Always use PixelSpy to open HEIF images"
                AllowAdvertise="no"
                InstallDefault="local"
@@ -296,7 +296,7 @@
       </Feature>
 
       <Feature Id="GifFeature"
-               Title="*.gif files"
+               Title="*.gif images"
                Description="Always use PixelSpy to open GIF images"
                AllowAdvertise="no"
                InstallDefault="local"
@@ -306,7 +306,7 @@
       </Feature>
 
       <Feature Id="PbmFeature"
-               Title="*.pbm files"
+               Title="*.pbm images"
                Description="Always use PixelSpy to open PBM images"
                AllowAdvertise="no"
                InstallDefault="local"
@@ -316,7 +316,7 @@
       </Feature>
 
       <Feature Id="PgmFeature"
-               Title="*.pgm files"
+               Title="*.pgm images"
                Description="Always use PixelSpy to open PGM images"
                AllowAdvertise="no"
                InstallDefault="local"
@@ -326,7 +326,7 @@
       </Feature>
 
       <Feature Id="PpmFeature"
-               Title="*.ppm files"
+               Title="*.ppm images"
                Description="Always use PixelSpy to open PPM images"
                AllowAdvertise="no"
                InstallDefault="local"
@@ -336,7 +336,7 @@
       </Feature>
 
       <Feature Id="TiffFeature"
-               Title="*.tif and *.tiff files"
+               Title="*.tif and *.tiff images"
                Description="Always use PixelSpy to open TIFF images"
                AllowAdvertise="no"
                InstallDefault="local"
@@ -347,7 +347,7 @@
       </Feature>
 
       <Feature Id="WebpFeature"
-               Title="*.webp files"
+               Title="*.webp images"
                Description="Always use PixelSpy to open WebP images"
                AllowAdvertise="no"
                InstallDefault="local"
