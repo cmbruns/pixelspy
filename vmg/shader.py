@@ -225,6 +225,7 @@ class RectangularTileShader(IImageShader, ShaderProgramLike):
         self.uDng.set(image)
         self.brightness.set(state.brightness + image.md.baseline_exposure)
         self.input_is_linear.set(image.md.photometric_scale == PhotometricScale.LINEAR)
+        state.anisotropic_filtering = False
         image.paint_gl(self, state)
         do_numerals = state.opx_scale_qwn() < 0.2
         if do_numerals:
@@ -405,12 +406,12 @@ class SphericalShader(IImageShader, ShaderProgramLike):
 
     def paint_gl(self, state: RenderStateLike, image: TiledImageLike) -> None:
         # both nearest and catmull-rom use nearest at the moment.
-        GL.glTexParameteri(GL.GL_TEXTURE_2D, GL.GL_TEXTURE_MAG_FILTER, GL.GL_NEAREST)
         GL.glTexParameteri(GL.GL_TEXTURE_2D, GL.GL_TEXTURE_MIN_FILTER, GL.GL_LINEAR_MIPMAP_NEAREST)
         GL.glTexParameteri(GL.GL_TEXTURE_2D, GL.GL_TEXTURE_WRAP_S, GL.GL_REPEAT)
         GL.glTexParameteri(GL.GL_TEXTURE_2D, GL.GL_TEXTURE_WRAP_T, GL.GL_MIRRORED_REPEAT)
         f_largest = GL.glGetFloatv(GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT)  # noqa
         GL.glTexParameterf(GL.GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, f_largest)
+        GL.glTexParameteri(GL.GL_TEXTURE_2D, GL.GL_TEXTURE_MAG_FILTER, GL.GL_NEAREST)
 
         GL.glUseProgram(self.shader)
         self.uPano.set(state, image)
