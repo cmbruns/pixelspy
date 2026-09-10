@@ -263,7 +263,9 @@ class ImageMetadata(ImageMetadataLike):
                     resolve = PIL.ExifTags.TAGS
                 for k, v in ifd.items():
                     tag = resolve.get(k, k)
-                    exif[tag] = v
+                    # Only add new keys; sometimes a stale Orientation is in ifd.
+                    if tag not in exif.keys():
+                        exif[tag] = v
             except KeyError:
                 pass
         try:
