@@ -1,0 +1,37 @@
+name: "Report a Problem"
+description: "Something not working right? Tell us what happened."
+title: "[Bug] "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to help improve PixelSpy.
+        Please fill out the details below so we can understand what went wrong.
+
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: "What happened?"
+      description: "Describe the issue in your own words."
+      placeholder: "Example: When I opened a DNG file, PixelSpy froze…"
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: "Steps to reproduce"
+      description: "If possible, list the steps that lead to the problem."
+      placeholder: "1. Open PixelSpy\n2. Load image\n3. Click XYZ"
+    validations:
+      required: false
+
+  - type: textarea
+    id: system-info
+    attributes:
+      label: "System information"
+      description: "OS, PixelSpy version, GPU, etc."
+      placeholder: "Windows 11, PixelSpy 0.9.3, RTX 3060"
+    validations:
+      required: false

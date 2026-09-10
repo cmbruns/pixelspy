@@ -858,6 +858,11 @@ class VimageMainWindow(Ui_MainWindow, QtWidgets.QMainWindow):
         self.imageWidgetGL.update()
 
     @QtCore.Slot()  # noqa
+    def on_actionReport_a_Problem_triggered(self):  # noqa
+        url = QtCore.QUrl("https://github.com/cmbruns/PixelSpy/issues")
+        QtGui.QDesktopServices.openUrl(url)
+
+    @QtCore.Slot()  # noqa
     def on_actionReset_View_triggered(self):  # noqa
         self.imageWidgetGL.view_state.reset()
         self.imageWidgetGL.update()

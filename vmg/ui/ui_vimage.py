@@ -3,7 +3,7 @@
 ################################################################################
 ## Form generated from reading UI file 'vimage.ui'
 ##
-## Created by: Qt User Interface Compiler version 6.11.1
+## Created by: Qt User Interface Compiler version 6.2.1
 ##
 ## WARNING! All changes made in this file will be lost when recompiling UI file!
 ################################################################################
@@ -40,13 +40,13 @@ class Ui_MainWindow(object):
         self.actionNext.setObjectName(u"actionNext")
         self.actionNext.setEnabled(False)
         icon = QIcon()
-        icon.addFile(u"../images/next_icon.png", QSize(), QIcon.Mode.Normal, QIcon.State.Off)
+        icon.addFile(u"../images/next_icon.png", QSize(), QIcon.Normal, QIcon.Off)
         self.actionNext.setIcon(icon)
         self.actionPrevious = QAction(MainWindow)
         self.actionPrevious.setObjectName(u"actionPrevious")
         self.actionPrevious.setEnabled(False)
         icon1 = QIcon()
-        icon1.addFile(u"../images/previous_icon.png", QSize(), QIcon.Mode.Normal, QIcon.State.Off)
+        icon1.addFile(u"../images/previous_icon.png", QSize(), QIcon.Normal, QIcon.Off)
         self.actionPrevious.setIcon(icon1)
         self.actionSharp = QAction(MainWindow)
         self.actionSharp.setObjectName(u"actionSharp")
@@ -86,7 +86,7 @@ class Ui_MainWindow(object):
         self.actionSelect_Rectangle.setObjectName(u"actionSelect_Rectangle")
         self.actionSelect_Rectangle.setEnabled(False)
         icon2 = QIcon()
-        icon2.addFile(u"../images/box_icon.png", QSize(), QIcon.Mode.Normal, QIcon.State.Off)
+        icon2.addFile(u"../images/box_icon.png", QSize(), QIcon.Normal, QIcon.Off)
         self.actionSelect_Rectangle.setIcon(icon2)
         self.actionCrop_to_Selection = QAction(MainWindow)
         self.actionCrop_to_Selection.setObjectName(u"actionCrop_to_Selection")
@@ -101,17 +101,17 @@ class Ui_MainWindow(object):
         self.actionZoom_Out.setObjectName(u"actionZoom_Out")
         self.actionZoom_Out.setEnabled(True)
         icon3 = QIcon()
-        icon3.addFile(u"../images/zoom_out.png", QSize(), QIcon.Mode.Normal, QIcon.State.Off)
+        icon3.addFile(u"../images/zoom_out.png", QSize(), QIcon.Normal, QIcon.Off)
         self.actionZoom_Out.setIcon(icon3)
         self.actionZoom_In = QAction(MainWindow)
         self.actionZoom_In.setObjectName(u"actionZoom_In")
         self.actionZoom_In.setEnabled(False)
         icon4 = QIcon()
-        icon4.addFile(u"../images/zoom_in.png", QSize(), QIcon.Mode.Normal, QIcon.State.Off)
+        icon4.addFile(u"../images/zoom_in.png", QSize(), QIcon.Normal, QIcon.Off)
         self.actionZoom_In.setIcon(icon4)
         self.actionReport_a_Problem = QAction(MainWindow)
         self.actionReport_a_Problem.setObjectName(u"actionReport_a_Problem")
-        self.actionReport_a_Problem.setEnabled(False)
+        self.actionReport_a_Problem.setEnabled(True)
         self.actionView_Log = QAction(MainWindow)
         self.actionView_Log.setObjectName(u"actionView_Log")
         self.actionPerspectiveInput = QAction(MainWindow)
@@ -276,7 +276,7 @@ class Ui_MainWindow(object):
         MainWindow.setStatusBar(self.statusbar)
         self.toolBar = QToolBar(MainWindow)
         self.toolBar.setObjectName(u"toolBar")
-        MainWindow.addToolBar(Qt.ToolBarArea.TopToolBarArea, self.toolBar)
+        MainWindow.addToolBar(Qt.TopToolBarArea, self.toolBar)
 
         self.menubar.addAction(self.menuFile.menuAction())
         self.menubar.addAction(self.menuEdit.menuAction())

@@ -1,0 +1,10 @@
+blank_issues_enabled: false
+
+contact_links:
+  - name: "💬 PixelSpy Support & Questions"
+    url: "https://github.com/cmbruns/PixelSpy/discussions"
+    about: "If you're not sure whether something is a bug, start a friendly discussion instead."
+
+  - name: "🐞 Report a Problem"
+    url: "https://github.com/cmbruns/PixelSpy/issues/new?template=report-a-problem.yml"
+    about: "Found something odd? Tell us what happened — even small glitches help us improve PixelSpy."
