@@ -546,7 +546,7 @@ class VimageMainWindow(Ui_MainWindow, QtWidgets.QMainWindow):
             <H2>PixelSpy Image Viewer</H2>
             <p>version {__version__}</p>
             <p>git hash: {abb_hash}</p>
-            <p><a href='https://github.com/cmbruns/PixelSpy/issues'>Report an issue</a></p>
+            <p><a href='https://github.com/cmbruns/PixelSpy/issues/new/choose'>Report an issue</a></p>
             <p><a href='https://github.com/cmbruns/PixelSpy'>Source code</a></p>
             <p><b>Maintainer</b>: Christopher Bruns</p>
         """)
@@ -859,7 +859,7 @@ class VimageMainWindow(Ui_MainWindow, QtWidgets.QMainWindow):
 
     @QtCore.Slot()  # noqa
     def on_actionReport_a_Problem_triggered(self):  # noqa
-        url = QtCore.QUrl("https://github.com/cmbruns/PixelSpy/issues")
+        url = QtCore.QUrl("https://github.com/cmbruns/PixelSpy/issues/new/choose")
         QtGui.QDesktopServices.openUrl(url)
 
     @QtCore.Slot()  # noqa
