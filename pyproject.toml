@@ -1,17 +1,16 @@
 [project]
-name = "vimage"
+name = "pixelspy"
 dynamic = ["version"]
-version = "0.1.0"
-description = "vimage viewer and processing tools"
+description = "PixelSpy viewer and processing tools"
 readme = "README.md"
-requires-python = ">=3.10"
+requires-python = ">=3.11"
 
 dependencies = [
     "defusedxml",  # required for PIL to parse XMP metadata
     "imagecodecs",  # required for tifffile to read JPEG copressed TIFF/DNG
     "numpy",
     "pyexiftool",  # For reading image metadata
-    "pyinstaller",  # for building releases of vimage
+    "pyinstaller",  # for building releases of PixelSpy
     "pillow",  # for image loading and processing
     "pillow-heif",  # for loading iPhone camera images
     "pillow-minecraft-map",  # for loading Minecraft map info .dat images

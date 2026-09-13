@@ -120,18 +120,18 @@ elseif(APPLE)
       USE_SOURCE_PERMISSIONS
   )
 elseif(UNIX)
-  install(DIRECTORY "${CMAKE_BINARY_DIR}/dist/pixelspy"
+  install(DIRECTORY "${CMAKE_BINARY_DIR}/dist/PixelSpy"
       DESTINATION "libexec"
   )
   # 1. Install your actual program target normally
   install(
-     PROGRAMS "${CMAKE_BINARY_DIR}/dist/pixelspy/pixelspy"
-     DESTINATION "libexec/pixelspy"
+     PROGRAMS "${CMAKE_BINARY_DIR}/dist/PixelSpy/PixelSpy"
+     DESTINATION "libexec/PixelSpy"
   )
   # 2. Define the symlink target path (relative to where the symlink will live)
   # From 'bin/', you must go up one folder to reach 'libexec/'
-  set(SYMLINK_TARGET "../libexec/pixelspy/pixelspy")
-  set(SYMLINK_NAME "pixelspy")
+  set(SYMLINK_TARGET "../libexec/PixelSpy/PixelSpy")
+  set(SYMLINK_NAME "PixelSpy")
   # 3. Create the symlink physically inside the build directory at configure time
   execute_process(
     COMMAND ${CMAKE_COMMAND} -E create_symlink
@@ -155,13 +155,13 @@ elseif(UNIX)
   install(FILES ${CMAKE_SOURCE_DIR/CMake/resources/debian/mimetypes-pixelspy.xml}
     DESTINATION "share/mime/packages"
   )
-  install(FILES ${CMAKE_SOURCE_DIR}/CMake/resources/debian/pixelspy.desktop
+  install(FILES ${CMAKE_SOURCE_DIR}/CMake/resources/debian/PixelSpy.desktop
         DESTINATION "share/applications"
   )
-  install(FILES ${CMAKE_SOURCE_DIR}/CMake/resources/debian/64x64/pixelspy.png
+  install(FILES ${CMAKE_SOURCE_DIR}/CMake/resources/debian/64x64/PixelSpy.png
         DESTINATION "share/icons/hicolor/64x64/apps"
   )
-  install(FILES ${CMAKE_SOURCE_DIR}/CMake/resources/debian/256x256/pixelspy.png
+  install(FILES ${CMAKE_SOURCE_DIR}/CMake/resources/debian/256x256/PixelSpy.png
         DESTINATION "share/icons/hicolor/256x256/apps"
   )
   endif()
