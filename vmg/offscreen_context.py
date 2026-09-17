@@ -24,10 +24,16 @@ class OffscreenContext(QtCore.QObject):
         assert self.context.isValid()
 
     def __enter__(self):
-        if self.context is None:
-            self.init_gl()
-        self.context.makeCurrent(self.surface)
+        self.make_current()
         return self
 
     def __exit__(self, exc_type, exc_val, exc_tb):
+        self.done_current()
+
+    def done_current(self):
         self.context.doneCurrent()
+
+    def make_current(self):
+        if self.context is None:
+            self.init_gl()
+        self.context.makeCurrent(self.surface)

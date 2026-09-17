@@ -197,9 +197,11 @@
     <addaction name="menuPixel_Values"/>
     <addaction name="actionSharp"/>
     <addaction name="actionShow_Center_Guides"/>
+    <addaction name="separator"/>
     <addaction name="menuPanorama"/>
-    <addaction name="menuRaw_DNG"/>
     <addaction name="menuStereo_3D"/>
+    <addaction name="actionEnter_VR"/>
+    <addaction name="menuRaw_DNG"/>
     <addaction name="separator"/>
     <addaction name="menuDebug"/>
    </widget>
@@ -773,6 +775,11 @@
   <action name="actionDemosaic">
    <property name="text">
     <string>Demosaic...</string>
+   </property>
+  </action>
+  <action name="actionEnter_VR">
+   <property name="text">
+    <string>Enter VR...</string>
    </property>
   </action>
  </widget>

@@ -40,7 +40,7 @@ sequenceDiagram
 
 - **Loader Thread**: Handles JPEG decoding and GL texture upload asynchronously
 - **Shared Offscreen Context**: Allows the worker thread to perform GL operations safely
-- **Signal Handshake**: `context_created` signal passes the shared context to the loader thread
+- **Signal Handshake**: `loader_context_created` signal passes the shared context to the loader thread
 - **Context Manager**: The offscreen context uses `__enter__`/`__exit__` for proper makeCurrent/doneCurrent management
 - **No Main Thread Blocking**: All heavy operations (decode + GPU upload) happen in the worker thread
 - **Race Condition Prevention**: The context is only used after it's initialized and the signal confirms it's ready

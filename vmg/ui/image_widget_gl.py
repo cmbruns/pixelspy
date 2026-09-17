@@ -53,7 +53,8 @@ class ImageWidgetGL(QtOpenGLWidgets.QOpenGLWidget):
         else:
             self.setCursor(cursor_holder.cursor)
 
-    context_created = QtCore.Signal(OffscreenContext)
+    loader_context_created = QtCore.Signal(OffscreenContext)
+    vr_context_created = QtCore.Signal(OffscreenContext)
 
     def event(self, event: QEvent):
         # if event.type() == QEvent.Type.Gesture:
@@ -120,13 +121,22 @@ class ImageWidgetGL(QtOpenGLWidgets.QOpenGLWidget):
 
     def create_offscreen_context(self):
         display_ctx = self.context()
-        offscreen_context = OffscreenContext(self, display_ctx, self.format())
-        offscreen_context.init_gl()
+        #
+        loader_context = OffscreenContext(self, display_ctx, self.format())
+        loader_context.init_gl()
         main_window = self.window()
         if main_window is not None and hasattr(main_window, "loading_thread"):
-            offscreen_context.context.moveToThread(main_window.loading_thread)
-        logger.debug("Created shared offscreen OpenGL context")
-        self.context_created.emit(offscreen_context)  # noqa
+            loader_context.context.moveToThread(main_window.loading_thread)
+        logger.debug("Created shared loader OpenGL context")
+        self.loader_context_created.emit(loader_context)  # noqa
+        #
+        vr_context = OffscreenContext(self, display_ctx, self.format())
+        vr_context.init_gl()
+        main_window = self.window()
+        if main_window is not None and hasattr(main_window, "vr_thread"):
+            vr_context.context.moveToThread(main_window.vr_thread)
+        logger.debug("Created shared vr OpenGL context")
+        self.vr_context_created.emit(vr_context)  # noqa
 
     @QtCore.Slot(DemosaicMethod)
     def on_demosaic_method_changed(self, demosaic_method: DemosaicMethod):

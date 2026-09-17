@@ -16,7 +16,7 @@ import time
 import PIL
 from PIL import Image, ImageGrab
 from pillow_heif import register_heif_opener  # Support apple .HEIF images
-import pillow_minecraft_map
+import pillow_minecraft_map  # noqa
 from PySide6 import QtCore, QtGui, QtWidgets
 from PySide6.QtCore import Qt
 from PySide6.QtGui import QUndoStack, QKeySequence
@@ -41,7 +41,7 @@ from vmg.ui.ui_vimage import Ui_MainWindow
 from vmg.version import __version__
 from vmg.git_hash import vimage_git_hash
 from vmg.resources import resource_filename
-
+from vmg.vr import VRThing
 
 logger = logging.getLogger(__name__)
 
@@ -227,7 +227,7 @@ class VimageMainWindow(Ui_MainWindow, QtWidgets.QMainWindow):
         self.image_loader.image_displayed.connect(self.image_displayed, QueuedConnection)
         #
         self.imageWidgetGL.load_failed.connect(self.image_load_failed, QueuedConnection)
-        self.imageWidgetGL.context_created.connect(self.image_loader.on_context_created, QueuedConnection)
+        self.imageWidgetGL.loader_context_created.connect(self.image_loader.on_context_created, QueuedConnection)
         # self.imageWidgetGL.image_displayed.connect(self.image_displayed, QueuedConnection)
         self.image_loader.image_displayed.connect(self.image_displayed, QueuedConnection)
         # progress tracking
@@ -243,6 +243,13 @@ class VimageMainWindow(Ui_MainWindow, QtWidgets.QMainWindow):
         self.log_window = LogDialog(self)
         self.lens_dialog = None  # Instantiate just in time
         self.demosaic_dialog = None
+        #
+        self.vr_thread = QtCore.QThread()
+        self.vr_thing = VRThing()
+        self.vr_thing.moveToThread(self.vr_thread)
+        self.vr_thread.start()
+        self.imageWidgetGL.vr_context_created.connect(self.vr_thing.on_context_created, QueuedConnection)
+        self.actionEnter_VR.triggered.connect(self.vr_thing.enter_vr)
 
     def activate_indexed_image(self):
         try:
