@@ -5,9 +5,12 @@ import sys
 import time
 
 from OpenGL import GL
-from PySide6.QtCore import QObject, Slot
-from PySide6.QtGui import QGuiApplication
+from PySide6.QtCore import QObject, Signal, Slot, Qt, QTimer, QUrl
+from PySide6.QtGui import QDesktopServices, QGuiApplication, QPixmap
+from PySide6.QtWidgets import QLabel
 import xr
+
+from vmg.resources import resource_filename
 
 if sys.platform == "win32":
     from OpenGL import WGL
@@ -73,6 +76,22 @@ class VRThing(QObject):
         self.swapchain_images = None
         self.blend_mode = None
 
+    @Slot()
+    def enter_vr(self) -> bool:
+        self.vr_session_waiting.emit()
+        # print("Starting SteamVR")
+        # QDesktopServices.openUrl(QUrl("steam://run/250820"))
+        try:
+            if not self.init_xr():
+                self.vr_session_failed.emit("")
+                return False
+            self.vr_session_started.emit()
+            self.xr_loop()
+            self.vr_session_exited.emit()
+            return True
+        finally:
+            self.exit_stack.close()
+
     def init_xr(self) -> bool:
         if self.offscreen_context is None:
             return False
@@ -136,7 +155,6 @@ class VRThing(QObject):
                 break
         if self.blend_mode is None:
             self.blend_mode = blend_modes[0]
-        print(f"blend mode = {self.blend_mode.name}")
         # reference space
         self.space = self.exit_stack.enter_context(xr.create_reference_space(
             self.session,
@@ -201,6 +219,17 @@ class VRThing(QObject):
             action_sets=[action_set, ],
         ))
         return True
+
+    @Slot(OffscreenContext)  # noqa
+    def on_context_created(self, offscreen_context: OffscreenContext) -> None:
+        logger.info("Received new VR OpenGL context.")
+        assert self.offscreen_context is None
+        self.offscreen_context = offscreen_context
+
+    vr_session_waiting = Signal()
+    vr_session_started = Signal()
+    vr_session_failed = Signal(str)
+    vr_session_exited = Signal()
 
     def xr_loop(self):
         event_handler = SessionStateEventHandler(self.session, self.view_configuration_type)
@@ -347,20 +376,53 @@ class VRThing(QObject):
                     )
                 )
 
-    @Slot()
-    def enter_vr(self) -> bool:
-        try:
-            if not self.init_xr():
-                return False
-            # print("enter VR")
-            self.xr_loop()
-            # print("done VR")
-            return True
-        finally:
-            self.exit_stack.close()
 
-    @Slot(OffscreenContext)  # noqa
-    def on_context_created(self, offscreen_context: OffscreenContext) -> None:
-        logger.info("Received new OpenGL context.")
-        assert self.offscreen_context is None
-        self.offscreen_context = offscreen_context
+class VrStateIndicator(QLabel):
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.setFixedSize(22, 22)
+        self.setContentsMargins(0, 0, 0, 0)
+        self.setScaledContents(True)
+        self.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.pixmap_active = QPixmap(resource_filename("vmg.images", "hmd_green32.png"))
+        self.pixmap_waiting = QPixmap(resource_filename("vmg.images", "hmd_waiting32.png"))
+        self.pixmap_failed = QPixmap(resource_filename("vmg.images", "hmd_error32.png"))
+        # Set up the 20-second single-shot failure timer
+        self.failure_timer = QTimer(self)
+        self.failure_timer.setSingleShot(True)
+        self.failure_timer.timeout.connect(self.set_idle_state)
+        # Initialize
+        self.set_idle_state()
+
+    @Slot()
+    def set_active_state(self):
+        """Slots to handle a successful VR initialization."""
+        self.failure_timer.stop()
+        self.setPixmap(self.pixmap_active)
+        self.setScaledContents(True)
+        self.setToolTip("VR Session Active")
+        self.show()
+
+    @Slot(str)
+    def set_failed_state(self, error_message: str = ""):
+        """Slots to handle a VR initialization failure."""
+        self.setPixmap(self.pixmap_failed)
+        self.setScaledContents(True)
+        self.setToolTip(f"VR Error: {error_message}" if error_message else "VR Initialization Failed")
+        self.show()
+
+        # Start the 20-second fade out back to idle
+        self.failure_timer.start(20000)
+
+    @Slot()
+    def set_idle_state(self):
+        """Resets back to the neutral disconnected icon."""
+        self.hide()
+
+    @Slot()
+    def set_waiting_state(self):
+        """Slots to handle a VR initialization failure."""
+        self.setPixmap(self.pixmap_waiting)
+        self.setScaledContents(True)
+        self.setToolTip(f"VR Session Starting...")
+        self.show()

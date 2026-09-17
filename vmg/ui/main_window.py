@@ -41,7 +41,7 @@ from vmg.ui.ui_vimage import Ui_MainWindow
 from vmg.version import __version__
 from vmg.git_hash import vimage_git_hash
 from vmg.resources import resource_filename
-from vmg.vr import VRThing
+from vmg.vr import VRThing, VrStateIndicator
 
 logger = logging.getLogger(__name__)
 
@@ -197,18 +197,18 @@ class VimageMainWindow(Ui_MainWindow, QtWidgets.QMainWindow):
         self.clipboard = QtGui.QGuiApplication.clipboard()
         self.clipboard.dataChanged.connect(self.process_clipboard_change)  # noqa
         self.actionCopy.setEnabled(False)
-        self.actionCopy.setShortcut(QtGui.QKeySequence.Copy)
+        self.actionCopy.setShortcut(QtGui.QKeySequence.StandardKey.Copy)
         self.actionPaste.setEnabled(self.clipboard.image().width() > 0)
-        self.actionPaste.setShortcut(QtGui.QKeySequence.Paste)
+        self.actionPaste.setShortcut(QtGui.QKeySequence.StandardKey.Paste)
         self.clipboard.dataChanged.connect(self.process_clipboard_change)  # noqa
         # Undo actions
         self.undo_stack = QUndoStack()  # TODO: per-image undo stack
         self.undo_stack.cleanChanged.connect(self.undo_stack_clean_changed)  # noqa
         self.undo_stack.setActive()
         self.action_undo = self.undo_stack.createUndoAction(self)
-        self.action_undo.setShortcut(QtGui.QKeySequence.Undo)
+        self.action_undo.setShortcut(QtGui.QKeySequence.StandardKey.Undo)
         self.action_redo = self.undo_stack.createRedoAction(self)
-        self.action_redo.setShortcut(QtGui.QKeySequence.Redo)
+        self.action_redo.setShortcut(QtGui.QKeySequence.StandardKey.Redo)
         top_action = self.menuEdit.actions()[0]
         self.menuEdit.insertAction(top_action, self.action_undo)
         self.menuEdit.insertAction(top_action, self.action_redo)
@@ -250,6 +250,13 @@ class VimageMainWindow(Ui_MainWindow, QtWidgets.QMainWindow):
         self.vr_thread.start()
         self.imageWidgetGL.vr_context_created.connect(self.vr_thing.on_context_created, QueuedConnection)
         self.actionEnter_VR.triggered.connect(self.vr_thing.enter_vr)
+        #
+        self.vr_status = VrStateIndicator(self.statusbar)
+        self.statusbar.insertPermanentWidget(0, self.vr_status, stretch=0)
+        self.vr_thing.vr_session_waiting.connect(self.vr_status.set_waiting_state)
+        self.vr_thing.vr_session_started.connect(self.vr_status.set_active_state)
+        self.vr_thing.vr_session_failed.connect(self.vr_status.set_failed_state)
+        self.vr_thing.vr_session_exited.connect(self.vr_status.set_idle_state)
 
     def activate_indexed_image(self):
         try:
