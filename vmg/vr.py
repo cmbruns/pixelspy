@@ -77,6 +77,7 @@ class VRThing(QObject):
         self.blend_mode = None
         self.action_set = None
         self.exit_action = None
+        self.swapchain_image_type = xr.SwapchainImageOpenGLKHR
 
     @Slot()
     def enter_vr(self):
@@ -108,6 +109,7 @@ class VRThing(QObject):
         if "XR_KHR_opengl_enable" not in xr.enumerate_instance_extension_properties():
             raise RuntimeError("Required OpenXR extension 'XR_KHR_opengl_enable' is not available")
         major, minor, patch = [int(x) for x in app_version.split(".")]
+        logger.debug("Creating Instance")
         self.instance = self.exit_stack.enter_context(xr.create_instance(
             xr.InstanceCreateInfo(
                 application_info=xr.ApplicationInfo(
@@ -143,6 +145,7 @@ class VRThing(QObject):
                 glx_context=GLX.glXGetCurrentContext(),
                 glx_drawable=GLX.glXGetCurrentDrawable(),
             )
+        logger.debug("Creating Session")
         self.session = self.exit_stack.enter_context(xr.create_session(
             self.instance,
             xr.SessionCreateInfo(
@@ -176,6 +179,7 @@ class VRThing(QObject):
         ))
         self.set_up_actions()
         # swapchain format
+        logger.debug("Creating Swapchains")
         color_swapchain_format: int = None
         swapchain_formats = xr.enumerate_swapchain_formats(self.session)
         for sf in [GL.GL_RGBA8, GL.GL_RGBA8_SNORM, GL.GL_SRGB8_ALPHA8]:
@@ -183,6 +187,7 @@ class VRThing(QObject):
                 color_swapchain_format = sf
                 break
         assert color_swapchain_format is not None
+        logger.debug(f"Swapchain color format = {repr(color_swapchain_format)}")
         # views (usually two: one for the left eye; one for the right)
         self.view_configuration_type = xr.ViewConfigurationType.PRIMARY_STEREO
         config_views = xr.enumerate_view_configuration_views(
@@ -190,6 +195,7 @@ class VRThing(QObject):
             system_id=self.system_id,
             view_configuration_type=self.view_configuration_type,
         )
+        logger.debug(f"{len(config_views)} view configuration views found")
         assert len(config_views) > 0
         # create a swapchain for each view
         self.swapchains = []
@@ -197,6 +203,7 @@ class VRThing(QObject):
         self.swapchain_sizes = []
         self.swapchain_image_ptr_buffers = []
         for v in config_views:
+            logger.debug(f"Creating swapchain for view {v}")
             self.swapchains.append(xr.create_swapchain(self.session, xr.SwapchainCreateInfo(
                 array_size=1,
                 format=color_swapchain_format,
@@ -207,20 +214,25 @@ class VRThing(QObject):
                 sample_count=1,
                 usage_flags=xr.SwapchainUsageFlags.SAMPLED_BIT | xr.SwapchainUsageFlags.COLOR_ATTACHMENT_BIT,
             )))
+            logger.debug(f"Finished creating swapchain for view {v}")
             self.swapchain_images.append(xr.enumerate_swapchain_images(
-                swapchain=self.swapchains[-1], element_type=xr.SwapchainImageOpenGLESKHR))
+                swapchain=self.swapchains[-1], element_type=self.swapchain_image_type))
+            logger.debug(f"Finished enumerating swapchain images")
             self.swapchain_sizes.append((v.recommended_image_rect_width, v.recommended_image_rect_height))
             num_images = len(self.swapchain_images[-1])
             swapchain_image_ptr_buffer = (POINTER(xr.SwapchainImageBaseHeader) * num_images)()
+            logger.debug(f"Creating swapchain image pointers")
             for ix in range(num_images):
                 swapchain_image_ptr_buffer[ix] = cast(
                     byref(self.swapchain_images[-1][ix]),
                     POINTER(xr.SwapchainImageBaseHeader))
             self.swapchain_image_ptr_buffers.append(swapchain_image_ptr_buffer)
         # framebuffer
+        logger.debug("Creating Framebuffer")
         self.swapchain_framebuffer = GL.glGenFramebuffers(1)
         GL.glBindFramebuffer(GL.GL_FRAMEBUFFER, self.swapchain_framebuffer)
         # action sets
+        logger.debug("Attaching Action Set")
         xr.attach_session_action_sets(self.session, attach_info=xr.SessionActionSetsAttachInfo(
             action_sets=[self.action_set, ],
         ))
@@ -238,6 +250,7 @@ class VRThing(QObject):
     vr_session_exited = Signal()
 
     def poll_actions(self):
+        logger.debug("Setting up actions")
         active_action_set = xr.ActiveActionSet(self.action_set, xr.NULL_PATH)
         xr.sync_actions(
             self.session,
@@ -344,7 +357,7 @@ class VRThing(QObject):
                             layer_view.sub_image.image_rect.offset[:] = [0, 0]
                             layer_view.sub_image.image_rect.extent[:] = [*self.swapchain_sizes[view_index]]
                             swapchain_image_ptr = self.swapchain_image_ptr_buffers[view_index][swapchain_image_index]
-                            swapchain_image = cast(swapchain_image_ptr, POINTER(xr.SwapchainImageOpenGLESKHR)).contents
+                            swapchain_image = cast(swapchain_image_ptr, POINTER(self.swapchain_image_type)).contents
                             assert layer_view.sub_image.image_array_index == 0  # texture arrays not supported.
                             color_texture = swapchain_image.image
                             # graphics begin frame
@@ -435,10 +448,10 @@ class VRThing(QObject):
                     )
                 )
 
-    def render_frame(self, _frame_state, _view):
-        # TODO - render some images
-        GL.glClearColor(0.7, 1.0, 0.7, 1)  # green
+    def render_frame(self, frame_state: xr.FrameState, view: xr.View):
+        GL.glClearColor(0.7, 1.0, 0.7, 1)  # pale green
         GL.glClear(GL.GL_COLOR_BUFFER_BIT)
+        # TODO: render a rectangle in the world/stage frame
 
 
 class VrStateIndicator(QLabel):
