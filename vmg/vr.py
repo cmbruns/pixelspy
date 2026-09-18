@@ -43,7 +43,7 @@ class SessionStateEventHandler:
                 POINTER(xr.EventDataSessionStateChanged)
             ).contents
             self.session_state = xr.SessionState(event.state)
-            print(f"OpenXR session state changed to {self.session_state.name}")
+            logger.info(f"OpenXR session state changed to {self.session_state.name}")
             if self.session_state == xr.SessionState.READY:
                 xr.begin_session(
                     session=self.session,
@@ -75,43 +75,47 @@ class VRThing(QObject):
         self.swapchains = None
         self.swapchain_images = None
         self.blend_mode = None
+        self.action_set = None
 
     @Slot()
-    def enter_vr(self) -> bool:
+    def enter_vr(self):
+        logger.info("Entering VR")
         self.vr_session_waiting.emit()
         # print("Starting SteamVR")
         # QDesktopServices.openUrl(QUrl("steam://run/250820"))
         try:
-            if not self.init_xr():
-                self.vr_session_failed.emit("")
-                return False
+            self.init_xr()
+            logger.info("VR Session Started...")
             self.vr_session_started.emit()
             self.xr_loop()
+            logger.info("VR Session Exiting...")
             self.vr_session_exited.emit()
-            return True
+        except xr.exception.RuntimeFailureError:
+            logger.warn("Failed to create OpenXR Instance")
+            self.vr_session_failed.emit("Unable to create OpenXR Instance.\nIs your headset connected and working?")
+        except BaseException as exc:
+            logger.warn(f"VR Error {exc}")
+            self.vr_session_failed.emit(f"{exc}")
         finally:
+            logger.info("Cleaning up VR Session Remnants...")
             self.exit_stack.close()
 
     def init_xr(self) -> bool:
         if self.offscreen_context is None:
-            return False
+            raise RuntimeError("Missing OpenGL context for VR")
         # 1) XR Instance
         if "XR_KHR_opengl_enable" not in xr.enumerate_instance_extension_properties():
-            return False
+            raise RuntimeError("Required OpenXR extension 'XR_KHR_opengl_enable' is not available")
         major, minor, patch = [int(x) for x in app_version.split(".")]
-        try:
-            self.instance = self.exit_stack.enter_context(xr.create_instance(
-                xr.InstanceCreateInfo(
-                    application_info=xr.ApplicationInfo(
-                        application_name=QGuiApplication.applicationDisplayName(),
-                        application_version=(major << 16) | (minor << 8) | patch,
-                    ),
-                    enabled_extension_names=["XR_KHR_opengl_enable"],
+        self.instance = self.exit_stack.enter_context(xr.create_instance(
+            xr.InstanceCreateInfo(
+                application_info=xr.ApplicationInfo(
+                    application_name=QGuiApplication.applicationDisplayName(),
+                    application_version=(major << 16) | (minor << 8) | patch,
                 ),
-            ))
-        except xr.exception.RuntimeFailureError:
-            print("unable to create OpenXR Instance")
-            return False
+                enabled_extension_names=["XR_KHR_opengl_enable"],
+            ),
+        ))
         # 2) XR System
         self.system_id = xr.get_system(self.instance, xr.SystemGetInfo(
             form_factor=xr.FormFactor.HEAD_MOUNTED_DISPLAY,
@@ -161,7 +165,7 @@ class VRThing(QObject):
             xr.ReferenceSpaceCreateInfo(xr.ReferenceSpaceType.STAGE)
         ))
         # action set
-        action_set = self.exit_stack.enter_context(xr.create_action_set(
+        self.action_set = self.exit_stack.enter_context(xr.create_action_set(
             instance=self.instance,
             create_info=xr.ActionSetCreateInfo(
                 action_set_name="action_set",
@@ -169,6 +173,7 @@ class VRThing(QObject):
                 priority=0,
             ),
         ))
+        self.set_up_actions()
         # swapchain format
         color_swapchain_format: int = None
         swapchain_formats = xr.enumerate_swapchain_formats(self.session)
@@ -216,7 +221,7 @@ class VRThing(QObject):
         GL.glBindFramebuffer(GL.GL_FRAMEBUFFER, self.swapchain_framebuffer)
         # action sets
         xr.attach_session_action_sets(self.session, attach_info=xr.SessionActionSetsAttachInfo(
-            action_sets=[action_set, ],
+            action_sets=[self.action_set, ],
         ))
         return True
 
@@ -231,10 +236,58 @@ class VRThing(QObject):
     vr_session_failed = Signal(str)
     vr_session_exited = Signal()
 
+    def poll_actions(self):
+        # TODO: poll actions
+        active_action_set = xr.ActiveActionSet(self.action_set, xr.NULL_PATH)
+        xr.sync_actions(
+            self.session,
+            xr.ActionsSyncInfo(
+                active_action_sets=[active_action_set]
+            ),
+        )
+        state = xr.get_action_state_boolean(
+            self.session,
+            xr.ActionStateGetInfo(
+                action=self.exit_action,
+            ),
+        )
+        if state.is_active and state.changed_since_last_sync and state.current_state:
+            xr.request_exit_session(self.session)
+        #
+
+    def set_up_actions(self):
+        self.exit_action = xr.create_action(
+            action_set=self.action_set,
+            create_info=xr.ActionCreateInfo(
+                action_name="exit_vr",
+                localized_action_name="Exit VR",
+                action_type=xr.ActionType.BOOLEAN_INPUT,
+            ),
+        )
+        xr.suggest_interaction_profile_bindings(
+            instance=self.instance,
+            suggested_bindings=xr.InteractionProfileSuggestedBinding(
+                interaction_profile=xr.string_to_path(
+                    self.instance,
+                    "/interaction_profiles/oculus/touch_controller",
+                ),
+                suggested_bindings=[
+                    xr.ActionSuggestedBinding(
+                        self.exit_action,
+                        xr.string_to_path(self.instance, "/user/hand/left/input/y/click"),
+                    ),
+                    xr.ActionSuggestedBinding(
+                        self.exit_action,
+                        xr.string_to_path(self.instance, "/user/hand/right/input/b/click"),
+                    ),
+                ],
+            ),
+        )
+
     def xr_loop(self):
         event_handler = SessionStateEventHandler(self.session, self.view_configuration_type)
         color_to_depth_map = dict()
-        for _ in range(500):
+        for _ in range(5000):
             # TODO: poll android events
             # Poll session state events
             while True:
@@ -252,6 +305,10 @@ class VRThing(QObject):
                             xr.SessionState.VISIBLE,
                             xr.SessionState.FOCUSED,
                     )):
+                try:
+                    self.poll_actions()
+                except xr.SessionNotFocused:
+                    pass
                 frame_state = xr.wait_frame(self.session)
                 xr.begin_frame(self.session)
                 layers = []
@@ -290,7 +347,6 @@ class VRThing(QObject):
                             swapchain_image = cast(swapchain_image_ptr, POINTER(xr.SwapchainImageOpenGLESKHR)).contents
                             assert layer_view.sub_image.image_array_index == 0  # texture arrays not supported.
                             color_texture = swapchain_image.image
-                            print(view_index, color_texture, swapchain_image_index, swapchain_image)
                             # graphics begin frame
                             GL.glBindFramebuffer(GL.GL_FRAMEBUFFER, self.swapchain_framebuffer)
                             GL.glViewport(layer_view.sub_image.image_rect.offset.x,
@@ -386,7 +442,7 @@ class VrStateIndicator(QLabel):
         self.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.pixmap_active = QPixmap(resource_filename("vmg.images", "hmd_green32.png"))
         self.pixmap_waiting = QPixmap(resource_filename("vmg.images", "hmd_waiting32.png"))
-        self.pixmap_failed = QPixmap(resource_filename("vmg.images", "hmd_error32.png"))
+        self.pixmap_failed = QPixmap(resource_filename("vmg.images", "hmd_error_x32.png"))
         # Set up the 20-second single-shot failure timer
         self.failure_timer = QTimer(self)
         self.failure_timer.setSingleShot(True)

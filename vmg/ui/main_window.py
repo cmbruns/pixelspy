@@ -256,6 +256,7 @@ class VimageMainWindow(Ui_MainWindow, QtWidgets.QMainWindow):
         self.vr_thing.vr_session_waiting.connect(self.vr_status.set_waiting_state)
         self.vr_thing.vr_session_started.connect(self.vr_status.set_active_state)
         self.vr_thing.vr_session_failed.connect(self.vr_status.set_failed_state)
+        self.vr_thing.vr_session_failed.connect(self.on_vr_session_failed)
         self.vr_thing.vr_session_exited.connect(self.vr_status.set_idle_state)
 
     def activate_indexed_image(self):
@@ -420,6 +421,17 @@ class VimageMainWindow(Ui_MainWindow, QtWidgets.QMainWindow):
             if file.suffix.lower() in SUPPORTED_EXTENSIONS:
                 paths_list.append(file)
         self.set_image_list(paths_list, 0)
+
+    def on_vr_session_failed(self, error_message: str):
+        text = "Could not enter VR"
+        if error_message and len(error_message) > 0:
+            text += f"\n\nDetails:\n{error_message}"
+        QMessageBox.warning(
+            self,
+            "VR Session Failed",
+            text,
+        )
+        self.vr_status.set_idle_state()
 
     @QtCore.Slot()  # noqa
     def process_clipboard_change(self):
