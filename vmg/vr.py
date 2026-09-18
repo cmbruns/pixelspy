@@ -76,6 +76,7 @@ class VRThing(QObject):
         self.swapchain_images = None
         self.blend_mode = None
         self.action_set = None
+        self.exit_action = None
 
     @Slot()
     def enter_vr(self):
@@ -91,10 +92,10 @@ class VRThing(QObject):
             logger.info("VR Session Exiting...")
             self.vr_session_exited.emit()
         except xr.exception.RuntimeFailureError:
-            logger.warn("Failed to create OpenXR Instance")
+            logger.warning("Failed to create OpenXR Instance")
             self.vr_session_failed.emit("Unable to create OpenXR Instance.\nIs your headset connected and working?")
         except BaseException as exc:
-            logger.warn(f"VR Error {exc}")
+            logger.warning(f"VR Error {exc}")
             self.vr_session_failed.emit(f"{exc}")
         finally:
             logger.info("Cleaning up VR Session Remnants...")
@@ -237,7 +238,6 @@ class VRThing(QObject):
     vr_session_exited = Signal()
 
     def poll_actions(self):
-        # TODO: poll actions
         active_action_set = xr.ActiveActionSet(self.action_set, xr.NULL_PATH)
         xr.sync_actions(
             self.session,
@@ -377,9 +377,12 @@ class VRThing(QObject):
                             GL.glFramebufferTexture2D(GL.GL_FRAMEBUFFER, GL.GL_DEPTH_ATTACHMENT, GL.GL_TEXTURE_2D,
                                                       depth_texture, 0)
 
+                            self.render_frame(frame_state, view)
+                            # yield frame_state, view
+
                             # render - paint the entire universe a pale pink color
-                            GL.glClearColor(1, 0.7, 0.7, 1)  # pink
-                            GL.glClear(GL.GL_COLOR_BUFFER_BIT)
+                            # GL.glClearColor(1, 0.7, 0.7, 1)  # pink
+                            # GL.glClear(GL.GL_COLOR_BUFFER_BIT)
 
                             # end frame
                             GL.glBindFramebuffer(GL.GL_FRAMEBUFFER, 0)
@@ -431,6 +434,11 @@ class VRThing(QObject):
                         layers=[],
                     )
                 )
+
+    def render_frame(self, _frame_state, _view):
+        # TODO - render some images
+        GL.glClearColor(0.7, 1.0, 0.7, 1)  # green
+        GL.glClear(GL.GL_COLOR_BUFFER_BIT)
 
 
 class VrStateIndicator(QLabel):
