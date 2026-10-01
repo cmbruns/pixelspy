@@ -99,6 +99,12 @@ class ImageWidgetGL(QtOpenGLWidgets.QOpenGLWidget):
 
     load_failed = QtCore.Signal(str)
 
+    def leaveEvent(self, event: QEvent):
+        # Turn off pixel color widget when mouse leaves the image widget.
+        vs = self.view_state
+        vs.vss.pixel_color_changed.emit(None, vs.image.md.upper_bound)
+        super().leaveEvent(event)
+
     def mouseMoveEvent(self, event):
         if event.pos() is None:
             return

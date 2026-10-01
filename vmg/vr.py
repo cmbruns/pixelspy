@@ -9,6 +9,7 @@ from PySide6.QtCore import QObject, Signal, Slot, Qt, QTimer, QUrl
 from PySide6.QtGui import QDesktopServices, QGuiApplication, QPixmap
 from PySide6.QtWidgets import QLabel
 import xr
+import xr.utils
 
 from vmg.resources import resource_filename
 
@@ -19,6 +20,10 @@ else:
 
 from vmg.offscreen_context import OffscreenContext
 from vmg.version import __version__ as app_version
+
+DEBUG = True
+if DEBUG:
+    xr.api_layer.activate_core_validation_layer()
 
 logger = logging.getLogger(__name__)
 
@@ -78,6 +83,7 @@ class VRThing(QObject):
         self.action_set = None
         self.exit_action = None
         self.swapchain_image_type = xr.SwapchainImageOpenGLKHR
+        self.vao = None
 
     @Slot()
     def enter_vr(self):
@@ -236,6 +242,8 @@ class VRThing(QObject):
         xr.attach_session_action_sets(self.session, attach_info=xr.SessionActionSetsAttachInfo(
             action_sets=[self.action_set, ],
         ))
+        # OpenGL
+        self.vao = GL.glGenVertexArrays(1)
         return True
 
     @Slot(OffscreenContext)  # noqa
@@ -452,6 +460,9 @@ class VRThing(QObject):
         GL.glClearColor(0.7, 1.0, 0.7, 1)  # pale green
         GL.glClear(GL.GL_COLOR_BUFFER_BIT)
         # TODO: render a rectangle in the world/stage frame
+        ndc_X_eye = xr.utils.projection_from_fovf(view.fov)  # Projection
+        eye_X_stg = xr.utils.view_matrix_from_posef(view.pose)  # View
+        GL.glBindVertexArray(self.vao)
 
 
 class VrStateIndicator(QLabel):

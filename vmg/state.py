@@ -289,6 +289,8 @@ class ViewState(
                 rx, ry = self.image.md.rpx_for_opx(p_opx)
                 color = self.image.array[ry, rx]
             except IndexError:
+                # Turn off pixel color widget when outside image boundary
+                self.vss.pixel_color_changed.emit(None, self.image.md.upper_bound)  # noqa
                 return update_display
             if self._input_format() in (
                     InputFormat.EQUIRECTANGULAR,
