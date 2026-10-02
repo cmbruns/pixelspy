@@ -9,6 +9,7 @@ from PySide6.QtCore import QEvent, Qt, QPoint
 from PySide6.QtGui import QPainter, QPen, QColor, QAction
 from PySide6.QtWidgets import QGestureEvent, QSwipeGesture, QPinchGesture
 
+from vmg.feature_toggle import ENABLE_VR_VIEW
 from vmg.interfaces import TiledImageLike, InputFormat, PhotometricScale, DemosaicMethod, RenderStateLike
 from vmg.offscreen_context import OffscreenContext
 from vmg.selection_box import (CursorHolder)
@@ -136,13 +137,14 @@ class ImageWidgetGL(QtOpenGLWidgets.QOpenGLWidget):
         logger.debug("Created shared loader OpenGL context")
         self.loader_context_created.emit(loader_context)  # noqa
         #
-        vr_context = OffscreenContext(self, display_ctx, self.format())
-        vr_context.init_gl()
-        main_window = self.window()
-        if main_window is not None and hasattr(main_window, "vr_thread"):
-            vr_context.context.moveToThread(main_window.vr_thread)
-        logger.debug("Created shared vr OpenGL context")
-        self.vr_context_created.emit(vr_context)  # noqa
+        if ENABLE_VR_VIEW:
+            vr_context = OffscreenContext(self, display_ctx, self.format())
+            vr_context.init_gl()
+            main_window = self.window()
+            if main_window is not None and hasattr(main_window, "vr_thread"):
+                vr_context.context.moveToThread(main_window.vr_thread)
+            logger.debug("Created shared vr OpenGL context")
+            self.vr_context_created.emit(vr_context)  # noqa
 
     @QtCore.Slot(DemosaicMethod)
     def on_demosaic_method_changed(self, demosaic_method: DemosaicMethod):
