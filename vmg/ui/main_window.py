@@ -41,7 +41,9 @@ from vmg.ui.ui_vimage import Ui_MainWindow
 from vmg.version import __version__
 from vmg.git_hash import vimage_git_hash
 from vmg.resources import resource_filename
-from vmg.vr import VRThing, VrStateIndicator
+from vmg.feature_toggle import ENABLE_VR_VIEW
+if ENABLE_VR_VIEW:
+    from vmg.vr import VRThing, VrStateIndicator
 
 logger = logging.getLogger(__name__)
 
@@ -244,20 +246,24 @@ class VimageMainWindow(Ui_MainWindow, QtWidgets.QMainWindow):
         self.lens_dialog = None  # Instantiate just in time
         self.demosaic_dialog = None
         #
-        self.vr_thread = QtCore.QThread()
-        self.vr_thing = VRThing()
-        self.vr_thing.moveToThread(self.vr_thread)
-        self.vr_thread.start()
-        self.imageWidgetGL.vr_context_created.connect(self.vr_thing.on_context_created, QueuedConnection)
-        self.actionEnter_VR.triggered.connect(self.vr_thing.enter_vr)
-        #
-        self.vr_status = VrStateIndicator(self.statusbar)
-        self.statusbar.insertPermanentWidget(0, self.vr_status, stretch=0)
-        self.vr_thing.vr_session_waiting.connect(self.vr_status.set_waiting_state)
-        self.vr_thing.vr_session_started.connect(self.vr_status.set_active_state)
-        self.vr_thing.vr_session_failed.connect(self.vr_status.set_failed_state)
-        self.vr_thing.vr_session_failed.connect(self.on_vr_session_failed)
-        self.vr_thing.vr_session_exited.connect(self.vr_status.set_idle_state)
+        if ENABLE_VR_VIEW:
+            self.vr_thread = QtCore.QThread()
+            self.vr_thing = VRThing()
+            self.vr_thing.moveToThread(self.vr_thread)
+            self.vr_thread.start()
+            self.imageWidgetGL.vr_context_created.connect(self.vr_thing.on_context_created, QueuedConnection)
+            self.actionEnter_VR.triggered.connect(self.vr_thing.enter_vr)
+            #
+            self.vr_status = VrStateIndicator(self.statusbar)
+            self.statusbar.insertPermanentWidget(0, self.vr_status, stretch=0)
+            self.vr_thing.vr_session_waiting.connect(self.vr_status.set_waiting_state)
+            self.vr_thing.vr_session_started.connect(self.vr_status.set_active_state)
+            self.vr_thing.vr_session_failed.connect(self.vr_status.set_failed_state)
+            self.vr_thing.vr_session_failed.connect(self.on_vr_session_failed)
+            self.vr_thing.vr_session_exited.connect(self.vr_status.set_idle_state)
+        else:
+            self.actionEnter_VR.setEnabled(False)
+            self.actionEnter_VR.setVisible(False)
 
     def activate_indexed_image(self):
         try:
@@ -423,15 +429,16 @@ class VimageMainWindow(Ui_MainWindow, QtWidgets.QMainWindow):
         self.set_image_list(paths_list, 0)
 
     def on_vr_session_failed(self, error_message: str):
-        text = "Could not enter VR"
-        if error_message and len(error_message) > 0:
-            text += f"\n\nDetails:\n{error_message}"
-        QMessageBox.warning(
-            self,
-            "VR Session Failed",
-            text,
-        )
-        self.vr_status.set_idle_state()
+        if ENABLE_VR_VIEW:
+            text = "Could not enter VR"
+            if error_message and len(error_message) > 0:
+                text += f"\n\nDetails:\n{error_message}"
+            QMessageBox.warning(
+                self,
+                "VR Session Failed",
+                text,
+            )
+            self.vr_status.set_idle_state()
 
     @QtCore.Slot()  # noqa
     def process_clipboard_change(self):
