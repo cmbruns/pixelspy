@@ -34,7 +34,7 @@ GLenum = int
 GLint = int
 
 
-TILE_SIZE = 2048
+TILE_SIZE = 512
 
 gl_type_for_numpy_dtype = {
     numpy.dtype("int8"): GL.GL_BYTE,

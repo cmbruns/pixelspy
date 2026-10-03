@@ -281,6 +281,9 @@ class ImageMetadata(ImageMetadataLike):
         self._update_orientation(orientation_code)
         if pil_image.format == "JPEG" and pil_image.filename.lower().endswith(".jps"):
             self.input_stereo_layout = InputStereoLayout.SBS_RL
+            ow, oh = self.size_opx
+            ow = ow // 2
+            self.size_opx = DimensionsOpx(ow, oh)
         w, h = self.size_opx
         model = exif.get("Model", "").lower()
         self._update_model(exif.get("Model", ""))
