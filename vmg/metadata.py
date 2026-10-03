@@ -18,7 +18,7 @@ from tifffile import TiffPage
 from vmg.dng_color import LightSource, calculate_dng_t
 from vmg.exif_orientation import ExifOrientation
 from vmg.frame import DimensionsOpx
-from vmg.interfaces import ImageMetadataLike, InputFormat, PhotometricScale
+from vmg.interfaces import ImageMetadataLike, InputPanoramaFormat, PhotometricScale, InputStereoLayout
 
 logger = logging.getLogger(__name__)
 
@@ -70,7 +70,8 @@ class ImageMetadata(ImageMetadataLike):
         self.size_rpx = (1, 1)  # raw array size
         self.orientation: ExifOrientation = ExifOrientation.ROTATE_0
         self.rpx_R_opx = numpy.eye(2, dtype=numpy.float32)
-        self.input_format = InputFormat.STANDARD_PHOTO
+        self.input_panorama_format = InputPanoramaFormat.FLAT
+        self.input_stereo_layout = InputStereoLayout.MONO
         self.photometric_scale = PhotometricScale.SRGB
         self.upper_bound = 255
         self.channel_count = 3
@@ -209,12 +210,12 @@ class ImageMetadata(ImageMetadataLike):
             if 2 * w == h:  # vertical dual fisheye
                 self.df_front_center_scale = (0.5, 0.25, 1.0, 0.5)
                 self.df_rear_center_scale = (0.5, 0.75, 1.0, 0.5)
-                self.input_format = InputFormat.DUAL_FISHEYE
+                self.input_panorama_format = InputPanoramaFormat.DUAL_FISHEYE
             elif self.cfa_pattern != (-1, -1, -1, -1) and self.channel_count == 1:
                 # The rawest of DNGs are not equirectangular
-                self.input_format = InputFormat.DUAL_FISHEYE
+                self.input_panorama_format = InputPanoramaFormat.DUAL_FISHEYE
             else:
-                self.input_format = InputFormat.EQUIRECTANGULAR
+                self.input_panorama_format = InputPanoramaFormat.EQUIRECTANGULAR
             if re.search(r'\sIMUHEX=([0-9a-fA-F]{36})\s', user_comment):  # QooCam3 Ultra raw dng
                 m = re.search(r'\sIMUHEX=([0-9a-fA-F]{36})\s', user_comment)
                 assert m
@@ -240,7 +241,7 @@ class ImageMetadata(ImageMetadataLike):
                     f"Pose heading, pitch, roll = ({self.pose_heading_degrees}, {self.pose_pitch_degrees}, {self.pose_roll_degrees})")
                 self.update_pcm_rot_geo()
         else:
-            self.input_format = InputFormat.STANDARD_PHOTO
+            self.input_panorama_format = InputPanoramaFormat.FLAT
 
     def load_pil_image(self, pil_image: Image.Image) -> None:
         w, h = pil_image.size
@@ -278,20 +279,22 @@ class ImageMetadata(ImageMetadataLike):
             logger.debug(f"EXIF {k} = '{exif[k]}'")
         orientation_code: int = exif.get("Orientation", 1)
         self._update_orientation(orientation_code)
+        if pil_image.format == "JPEG" and pil_image.filename.lower().endswith(".jps"):
+            self.input_stereo_layout = InputStereoLayout.SBS_RL
         w, h = self.size_opx
         model = exif.get("Model", "").lower()
         self._update_model(exif.get("Model", ""))
         logger.debug(f"Camera model = '{model}'")
         if w != 2 * h:
-            self.input_format = InputFormat.STANDARD_PHOTO  # Non-2:1 aspect is always a regular photo
+            self.input_panorama_format = InputPanoramaFormat.FLAT  # Non-2:1 aspect is always a regular photo
         else:
             # 2016 Gear 360 unstitched image has certain sizes
             if model == "sm-c200" and ((w, h) == (7776, 3888) or (w, h) == (5792, 2896)):
-                self.input_format = InputFormat.DUAL_FISHEYE
+                self.input_panorama_format = InputPanoramaFormat.DUAL_FISHEYE
             elif model.startswith("ricoh theta"):
-                self.input_format = InputFormat.EQUIRECTANGULAR
+                self.input_panorama_format = InputPanoramaFormat.EQUIRECTANGULAR
             else:
-                self.input_format = InputFormat.EQUIRECTANGULAR  # Too inclusive...
+                self.input_panorama_format = InputPanoramaFormat.EQUIRECTANGULAR  # Too inclusive...
             try:
                 # TODO: InitialViewHeadingDegrees
                 desc = xmp["xmpmeta"]["RDF"]["Description"]
@@ -490,12 +493,12 @@ class ImageMetadata(ImageMetadataLike):
             user_comment = exif["EXIF:UserComment"]
         w, h = self.size_opx
         if w != 2 * h:
-            self.input_format = InputFormat.STANDARD_PHOTO  # Non-2:1 aspect is always a regular photo
+            self.input_panorama_format = InputPanoramaFormat.FLAT  # Non-2:1 aspect is always a regular photo
         else:  # Panorama
             if "EXIF:DNGVersion" in exif:
-                self.input_format = InputFormat.DUAL_FISHEYE
+                self.input_panorama_format = InputPanoramaFormat.DUAL_FISHEYE
             else:
-                self.input_format = InputFormat.EQUIRECTANGULAR
+                self.input_panorama_format = InputPanoramaFormat.EQUIRECTANGULAR
             if "EXIF:PoseHeadingDegrees" in exif:
                 self.pose_heading_degrees = float(exif["EXIF:PoseHeadingDegrees"])
             elif "EXIF:GPSImgDirection" in exif:

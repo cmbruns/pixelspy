@@ -2,7 +2,7 @@ from math import radians, degrees
 
 from PySide6 import QtWidgets, QtCore
 
-from vmg.interfaces import TiledImageLike, InputFormat
+from vmg.interfaces import TiledImageLike, InputPanoramaFormat
 from vmg.ui.ui_lens_parameters import Ui_Dialog
 
 
@@ -39,7 +39,7 @@ class LensDialog(QtWidgets.QDialog):
             return
         if self.image is None:
             return
-        if self.image.md.input_format != InputFormat.DUAL_FISHEYE:
+        if self.image.md.input_panorama_format != InputPanoramaFormat.DUAL_FISHEYE:
             return
         if self.image.md.inscribed_fov_radians == radians(value):
             return
@@ -52,7 +52,7 @@ class LensDialog(QtWidgets.QDialog):
             return
         if self.image is None:
             return
-        if self.image.md.input_format != InputFormat.DUAL_FISHEYE:
+        if self.image.md.input_panorama_format != InputPanoramaFormat.DUAL_FISHEYE:
             return
         if self.image.md.df_lens_rot_radians == radians(value):
             return
@@ -65,7 +65,7 @@ class LensDialog(QtWidgets.QDialog):
             return
         if self.image is None:
             return
-        if self.image.md.input_format == InputFormat.STANDARD_PHOTO:
+        if self.image.md.input_panorama_format == InputPanoramaFormat.FLAT:
             return
         if self.image.md.pose_heading_degrees == value:
             return
@@ -79,7 +79,7 @@ class LensDialog(QtWidgets.QDialog):
             return
         if self.image is None:
             return
-        if self.image.md.input_format == InputFormat.STANDARD_PHOTO:
+        if self.image.md.input_panorama_format == InputPanoramaFormat.FLAT:
             return
         if self.image.md.pose_pitch_degrees == value:
             return
@@ -93,7 +93,7 @@ class LensDialog(QtWidgets.QDialog):
             return
         if self.image is None:
             return
-        if self.image.md.input_format == InputFormat.STANDARD_PHOTO:
+        if self.image.md.input_panorama_format == InputPanoramaFormat.FLAT:
             return
         if self.image.md.pose_roll_degrees == value:
             return

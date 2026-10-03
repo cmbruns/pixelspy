@@ -15,7 +15,7 @@ from PySide6.QtGui import Qt, QAction, QDesktopServices, QGuiApplication
 from vmg.action.copy_pixel_action import CopyPixelAction, copy_pixel_value
 from vmg.frame import DimensionsQwn, LocationHpd, LocationUsr, LocationNic, LocationOpx, LocationGeo, \
     LocationPrj, LocationQwn, LocationRelative, DimensionsOpx
-from vmg.interfaces import TiledImageLike, RenderStateLike, InputFormat, DemosaicMethod
+from vmg.interfaces import TiledImageLike, RenderStateLike, InputPanoramaFormat, DemosaicMethod
 from vmg.pixel_filter import PixelFilter, PixelNumerals
 from vmg.display_projection import DisplayProjection
 from vmg.selection_box import SelectionBox, CursorHolder
@@ -71,7 +71,7 @@ class ViewContextMenu(QObject):
             pass
         for action in self.state.sel_rect.context_menu_actions(
             p_opx,
-            md.input_format != InputFormat.STANDARD_PHOTO,
+                md.input_panorama_format != InputPanoramaFormat.FLAT,
         ):
             yield action
         # Image actions:
@@ -165,7 +165,7 @@ class ViewState(
     def center_on_point(self, qpoint: QPoint) -> bool:
         if self.image is None:
             return False
-        if self.image.md.input_format == InputFormat.STANDARD_PHOTO:
+        if self.image.md.input_panorama_format == InputPanoramaFormat.FLAT:
             opx = self.opx_for_qpoint(qpoint)
             w, h = self.image.md.size_opx
             self._center_rel[:] = opx[0]/w, opx[1]/h
@@ -205,13 +205,13 @@ class ViewState(
         prev_qwn = LocationQwn.from_qpoint(prev)
         curr_qwn = LocationQwn.from_qpoint(curr)
         if self._input_format() in (
-            InputFormat.EQUIRECTANGULAR,
-            # This actually works for fisheye too, the pitch and heading
-            # are view state parameters the superficially resemble
-            # the EQUIRECTANGULAR format coordinates, but do not
-            # actually depend on the input format.
-            InputFormat.DUAL_FISHEYE,
-            InputFormat.SINUSOIDAL,
+                InputPanoramaFormat.EQUIRECTANGULAR,
+                # This actually works for fisheye too, the pitch and heading
+                # are view state parameters the superficially resemble
+                # the EQUIRECTANGULAR format coordinates, but do not
+                # actually depend on the input format.
+                InputPanoramaFormat.DUAL_FISHEYE,
+                InputPanoramaFormat.SINUSOIDAL,
         ):
             prev_hpd = self.hpd_for_qwn(prev_qwn)
             curr_hpd = self.hpd_for_qwn(curr_qwn)
@@ -251,21 +251,21 @@ class ViewState(
             degrees(max(-1, min(1, p_geo.y))),
         )
 
-    def _input_format(self) -> InputFormat:
+    def _input_format(self) -> InputPanoramaFormat:
         if self.image is None:
-            return InputFormat.STANDARD_PHOTO
+            return InputPanoramaFormat.FLAT
         else:
-            return self.image.md.input_format
+            return self.image.md.input_panorama_format
 
     def hpd_for_qwn(self, p_qwn: LocationQwn) -> LocationHpd:
         return self.hpd_for_geo(self.geo_for_qwn(p_qwn))
 
     def key_press_event(self, event: QtGui.QKeyEvent) -> None:
-        if self._input_format() == InputFormat.STANDARD_PHOTO:
+        if self._input_format() == InputPanoramaFormat.FLAT:
             self.sel_rect.key_press_event(event)
 
     def key_release_event(self, event: QtGui.QKeyEvent) -> None:
-        if self._input_format() == InputFormat.STANDARD_PHOTO:
+        if self._input_format() == InputPanoramaFormat.FLAT:
             self.sel_rect.key_release_event(event)
 
     def mouse_move_event(self, event) -> bool:
@@ -273,7 +273,7 @@ class ViewState(
         update_display = False
         event_consumed = False
         p_opx = self.opx_for_qpoint(event.pos())
-        if self._input_format() == InputFormat.STANDARD_PHOTO:
+        if self._input_format() == InputPanoramaFormat.FLAT:
             event_consumed, update_display = self.sel_rect.mouse_move_event(event, p_opx, self.hover_min_opx)
         if event_consumed:
             pass
@@ -293,9 +293,9 @@ class ViewState(
                 self.vss.pixel_color_changed.emit(None, self.image.md.upper_bound)  # noqa
                 return update_display
             if self._input_format() in (
-                    InputFormat.EQUIRECTANGULAR,
-                    InputFormat.DUAL_FISHEYE,
-                    InputFormat.SINUSOIDAL,
+                    InputPanoramaFormat.EQUIRECTANGULAR,
+                    InputPanoramaFormat.DUAL_FISHEYE,
+                    InputPanoramaFormat.SINUSOIDAL,
             ):
                 p_hpd = self.hpd_for_qwn(p_qwn)
                 self.vss.request_message.emit(  # noqa
@@ -389,7 +389,7 @@ class ViewState(
         if self.image is None:
             return LocationOpx(-1, -1, 1)
         md = self.image.md
-        if md.input_format == InputFormat.STANDARD_PHOTO:
+        if md.input_panorama_format == InputPanoramaFormat.FLAT:
             p_nic = self.nic_for_qwn(p_qwn)
             center_opx = self.center_opx
             scale = self.asc_opx / 2
@@ -403,9 +403,9 @@ class ViewState(
             p_geo = self.geo_for_qwn(p_qwn)
             p_pcm = self.image.md.pcm_R_geo @ p_geo
             x, y, z = p_pcm
-            if md.input_format in [
-                InputFormat.EQUIRECTANGULAR,
-                InputFormat.SINUSOIDAL,  # TODO:
+            if md.input_panorama_format in [
+                InputPanoramaFormat.EQUIRECTANGULAR,
+                InputPanoramaFormat.SINUSOIDAL,  # TODO:
             ]:
                 lon = degrees(atan2(x, -z))
                 y = max(-1.0, min(1.0, y))
@@ -417,7 +417,7 @@ class ViewState(
                 )
                 return LocationOpx(*p_otc)
             else:
-                assert md.input_format == InputFormat.DUAL_FISHEYE
+                assert md.input_panorama_format == InputPanoramaFormat.DUAL_FISHEYE
                 if z <= 0:  # front lens
                     # fisheye center in right half of image
                     cx = 0.75
@@ -538,9 +538,9 @@ class ViewState(
             return
         w_qwn, h_qwn = self._size_qwn
         if self._input_format() in (
-            InputFormat.EQUIRECTANGULAR,
-            InputFormat.DUAL_FISHEYE,
-            InputFormat.SINUSOIDAL,
+                InputPanoramaFormat.EQUIRECTANGULAR,
+                InputPanoramaFormat.DUAL_FISHEYE,
+                InputPanoramaFormat.SINUSOIDAL,
         ):
             if 1 > w_qwn/h_qwn:
                 # window aspect is thin
@@ -603,9 +603,9 @@ class ViewState(
         if zoom_center is not None:
             p_qwn = LocationQwn(zoom_center.x(), zoom_center.y(), 1)
             if self._input_format() in (
-                    InputFormat.EQUIRECTANGULAR,
-                    InputFormat.DUAL_FISHEYE,  # TODO: close enough?
-                    InputFormat.SINUSOIDAL,
+                    InputPanoramaFormat.EQUIRECTANGULAR,
+                    InputPanoramaFormat.DUAL_FISHEYE,  # TODO: close enough?
+                    InputPanoramaFormat.SINUSOIDAL,
             ):
                 self._zoom = old_zoom
                 before_hpd = self.hpd_for_qwn(p_qwn)  # Before position
@@ -624,5 +624,5 @@ class ViewState(
                 dy = after_opx.y - before_opx.y
                 if self._size_opx().x:
                     self._center_rel = self._center_rel - (dx/self._size_opx().x, dy/self._size_opx().y)
-        if self._input_format() == InputFormat.STANDARD_PHOTO:
+        if self._input_format() == InputPanoramaFormat.FLAT:
             self._clamp_center()

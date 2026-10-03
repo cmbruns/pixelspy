@@ -1,0 +1,290 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="color-scheme" content="light dark" />
+  <link rel="icon" href="data:," />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <title>Stereo Viewer Competitive Analysis</title>
+  <style>
+    :root {
+      color-scheme: light dark;
+      --paper:#f4f5f2;
+      --ink:#101714;
+      --muted:#58625d;
+      --soft:#e6e9e5;
+      --panel:#ffffff;
+      --line:#cbd1cc;
+      --red:#d64343;
+      --cyan:#007d84;
+      --amber:#cb7a00;
+      --green:#23734a;
+      --shadow:0 18px 48px rgba(16,23,20,.08);
+    }
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --paper:#0d1311;
+        --ink:#edf3ef;
+        --muted:#a9b3ad;
+        --soft:#18201c;
+        --panel:#121a16;
+        --line:#303a34;
+        --red:#ff7470;
+        --cyan:#42c4ca;
+        --amber:#f2b24e;
+        --green:#62c98d;
+        --shadow:0 18px 48px rgba(0,0,0,.24);
+      }
+    }
+    *{box-sizing:border-box}
+    html{scroll-behavior:smooth}
+    body{margin:0;background:var(--paper);color:var(--ink);font-family:"IBM Plex Sans",sans-serif;line-height:1.52}
+    a{color:inherit;text-decoration-thickness:1px;text-underline-offset:3px}
+    button{font:inherit}
+    .wrap{width:min(1180px,calc(100% - 40px));margin:auto}
+    .hero{position:relative;overflow:hidden;border-bottom:1px solid var(--line);padding:76px 0 54px}
+    .hero-grid{display:grid;grid-template-columns:1.35fr .85fr;gap:56px;align-items:end}
+    .eyebrow,.mono{font-family:"IBM Plex Mono",monospace}
+    .eyebrow{margin:0 0 16px;color:var(--cyan);font-size:.77rem;font-weight:500;letter-spacing:.09em;text-transform:uppercase}
+    h1{font-size:clamp(2.8rem,7vw,6.7rem);line-height:.9;letter-spacing:-.065em;margin:0;max-width:850px;font-weight:700}
+    h1 span{display:block;color:var(--cyan)}
+    .deck{font-size:clamp(1.05rem,2vw,1.35rem);max-width:720px;margin:28px 0 0;color:var(--muted)}
+    .verdict{background:var(--ink);color:var(--paper);padding:25px 27px 24px;box-shadow:var(--shadow);position:relative}
+    .verdict:before{content:"";position:absolute;top:0;left:0;width:55%;height:4px;background:var(--red)}
+    .verdict .mono{font-size:.72rem;text-transform:uppercase;letter-spacing:.11em;opacity:.7}
+    .verdict strong{display:block;font-size:1.85rem;line-height:1.1;margin:11px 0 12px;letter-spacing:-.035em}
+    .verdict p{margin:0;opacity:.82;font-size:.95rem}
+    .orbit{position:absolute;width:400px;height:400px;border:1px solid color-mix(in srgb,var(--cyan) 35%,transparent);border-radius:50%;right:-190px;top:-210px}
+    .orbit:before,.orbit:after{content:"";position:absolute;border-radius:50%;width:180px;height:180px;top:110px}
+    .orbit:before{left:30px;background:color-mix(in srgb,var(--red) 18%,transparent)}
+    .orbit:after{right:30px;background:color-mix(in srgb,var(--cyan) 20%,transparent)}
+    .snapshot{display:flex;gap:14px;align-items:center;padding:14px 0;color:var(--muted);font-size:.82rem}
+    .snapshot .dot{width:6px;height:6px;border-radius:50%;background:var(--green)}
+    .sticky{position:sticky;top:0;z-index:10;background:color-mix(in srgb,var(--paper) 90%,transparent);backdrop-filter:blur(12px);border-bottom:1px solid var(--line)}
+    .nav{display:flex;gap:9px;align-items:center;padding:10px 0;overflow:hidden}
+    .nav a{font-family:"IBM Plex Mono",monospace;font-size:.75rem;text-decoration:none;border:1px solid transparent;padding:7px 10px;white-space:nowrap;color:var(--muted)}
+    .nav a:hover,.nav a:focus{border-color:var(--line);color:var(--ink)}
+    section{padding:74px 0;border-bottom:1px solid var(--line)}
+    .section-head{display:grid;grid-template-columns:.8fr 1.2fr;gap:50px;margin-bottom:34px}
+    h2{font-size:clamp(2rem,4.2vw,4rem);line-height:1;letter-spacing:-.05em;margin:0}
+    .section-head p{font-size:1.05rem;color:var(--muted);margin:3px 0 0;max-width:670px}
+    .rank-list{counter-reset:rank;display:grid;gap:1px;background:var(--line);border:1px solid var(--line)}
+    .rank-row{counter-increment:rank;background:var(--panel);display:grid;grid-template-columns:58px minmax(170px,1fr) minmax(220px,2.2fr) auto;gap:20px;align-items:center;padding:20px 22px}
+    .rank-row:before{content:counter(rank,decimal-leading-zero);font-family:"IBM Plex Mono";font-size:.76rem;color:var(--muted)}
+    .rank-row h3{margin:0;font-size:1.13rem;letter-spacing:-.02em}
+    .rank-row p{margin:3px 0 0;color:var(--muted);font-size:.9rem}
+    .signal{font-family:"IBM Plex Mono";font-size:.69rem;padding:5px 8px;border:1px solid var(--line);white-space:nowrap}
+    .signal.live{color:var(--green);border-color:color-mix(in srgb,var(--green) 40%,var(--line))}
+    .signal.frozen{color:var(--amber)}
+    .signal.dead{color:var(--red)}
+    .evidence-note{margin:16px 0 0;color:var(--muted);font-size:.82rem}
+    .controls{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:22px}
+    .filter{cursor:pointer;border:1px solid var(--line);background:var(--panel);color:var(--muted);padding:8px 12px;border-radius:999px}
+    .filter[aria-pressed="true"]{background:var(--ink);color:var(--paper);border-color:var(--ink)}
+    .gripes{display:grid;grid-template-columns:repeat(12,1fr);gap:14px}
+    .gripe{grid-column:span 4;background:var(--panel);border:1px solid var(--line);padding:22px;min-height:218px;display:flex;flex-direction:column}
+    .gripe.primary{grid-column:span 6}
+    .gripe[data-hidden="true"]{display:none}
+    .gripe .top{display:flex;justify-content:space-between;gap:12px;align-items:flex-start}
+    .gripe .who{font-family:"IBM Plex Mono";font-size:.72rem;color:var(--cyan)}
+    .gripe .count{font-family:"IBM Plex Mono";font-size:.66rem;color:var(--muted);text-align:right}
+    .gripe h3{font-size:1.25rem;line-height:1.15;margin:20px 0 10px;letter-spacing:-.025em}
+    .gripe p{font-size:.9rem;color:var(--muted);margin:0}
+    .gripe .source{margin-top:auto;padding-top:18px;font-size:.74rem;color:var(--muted)}
+    .matrix-intro{display:grid;grid-template-columns:1.2fr .8fr;gap:24px;margin-bottom:26px}
+    .callout{background:var(--cyan);color:white;padding:26px}
+    .callout strong{display:block;font-size:1.65rem;line-height:1.1;margin-bottom:8px;letter-spacing:-.035em}
+    .callout p{margin:0;opacity:.9}
+    .legend{border:1px solid var(--line);padding:22px;display:flex;flex-direction:column;justify-content:center}
+    .legend p{margin:4px 0;font-size:.84rem;color:var(--muted)}
+    .legend b{color:var(--ink)}
+    .viewer-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+    .viewer{background:var(--panel);border:1px solid var(--line);padding:20px}
+    .viewer h3{font-size:1.08rem;margin:0 0 16px}
+    .cap{display:grid;grid-template-columns:18px 1fr;gap:10px;padding:9px 0;border-top:1px solid var(--soft);font-size:.84rem}
+    .cap:first-of-type{border-top:0}
+    .yes{color:var(--green)}.no{color:var(--muted)}.partial{color:var(--amber)}
+    .cap small{display:block;color:var(--muted);margin-top:2px}
+    .ecosystem{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--line);border:1px solid var(--line);margin-top:28px}
+    .eco{background:var(--panel);padding:20px}
+    .eco .state{font-family:"IBM Plex Mono";font-size:.68rem;color:var(--muted)}
+    .eco h3{font-size:1.05rem;margin:12px 0 8px}
+    .eco p{font-size:.84rem;color:var(--muted);margin:0}
+    .strategy{display:grid;grid-template-columns:.8fr 1.2fr;gap:50px}
+    .strategy h2{max-width:420px}
+    .steps{border-top:1px solid var(--line)}
+    .step{display:grid;grid-template-columns:52px 1fr;gap:16px;padding:24px 0;border-bottom:1px solid var(--line)}
+    .step .n{font-family:"IBM Plex Mono";color:var(--cyan)}
+    .step h3{margin:0 0 5px;font-size:1.15rem}
+    .step p{margin:0;color:var(--muted);font-size:.92rem}
+    .watch{margin-top:24px;padding:18px 20px;border:1px solid var(--amber);color:var(--ink)}
+    .watch b{color:var(--amber)}
+    .method{display:grid;grid-template-columns:1fr 1fr;gap:30px}
+    .method h3{margin-top:0}
+    .method p,.method li{font-size:.88rem;color:var(--muted)}
+    .source-links{display:flex;flex-wrap:wrap;gap:8px}
+    .source-links a{font-family:"IBM Plex Mono";font-size:.7rem;text-decoration:none;border:1px solid var(--line);padding:7px 9px;background:var(--panel)}
+    footer{padding:32px 0 48px;color:var(--muted);font-size:.78rem;display:flex;justify-content:space-between;gap:18px}
+    @media(max-width:800px){
+      .wrap{width:min(100% - 28px,1180px)}
+      .hero{padding:48px 0 38px}.hero-grid,.section-head,.strategy,.method,.matrix-intro{grid-template-columns:1fr;gap:26px}
+      .hero-grid{align-items:start}h1{font-size:clamp(3rem,17vw,5.2rem)}
+      .nav{flex-wrap:wrap;gap:3px}.nav a{padding:5px 7px}
+      section{padding:52px 0}.rank-row{display:block;position:relative;padding:18px 86px 18px 18px}.rank-row:before{display:block;margin-bottom:10px}.rank-row>div+div{margin-top:14px}.rank-row .signal{position:absolute;top:16px;right:14px}
+      .gripe,.gripe.primary{grid-column:span 12;min-height:0}
+      .viewer-grid{grid-template-columns:1fr}.ecosystem{grid-template-columns:1fr 1fr}
+    }
+    @media(max-width:480px){
+      .ecosystem{grid-template-columns:1fr}.rank-row{padding:16px 14px}.verdict{padding:22px}.snapshot{align-items:flex-start}
+      footer{flex-direction:column}.section-head{margin-bottom:26px}
+    }
+    @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
+  </style>
+</head>
+<body>
+  <header class="hero">
+    <div class="orbit" aria-hidden="true"></div>
+    <div class="wrap hero-grid">
+      <div>
+        <p class="eyebrow">Desktop stereo-3D viewers · competitive field</p>
+        <h1>The lane is <span>open.</span></h1>
+        <p class="deck">StereoPhoto Maker owns mindshare. Nobody found in the field owns the standards-based path from a desktop photo viewer to an eye-tracked lenticular display.</p>
+      </div>
+      <aside class="verdict" aria-label="Strategic verdict">
+        <span class="mono">Strategic verdict</span>
+        <strong>Sprint at Acer SpatialLabs via OpenXR.</strong>
+        <p>It is the only glasses-free family in this study with a certified OpenXR runtime, and PixelSpy’s pyopenxr advantage makes the route unusually direct.</p>
+      </aside>
+    </div>
+    <div class="wrap snapshot"><span class="dot"></span><span>Research snapshot: 3 October 2026 · “No evidence found” is not proof of absence.</span></div>
+  </header>
+
+  <div class="sticky">
+    <nav class="wrap nav" aria-label="Report sections">
+      <a href="#field">01 Field</a><a href="#gripes">02 Gripes</a><a href="#support">03 Display support</a><a href="#strategy">04 Sprint lane</a><a href="#method">05 Method</a>
+    </nav>
+  </div>
+
+  <main>
+    <section id="field">
+      <div class="wrap">
+        <div class="section-head">
+          <h2>Mindshare,<br>not downloads.</h2>
+          <p>No leading product publishes comparable download counts. The ordering below uses recommendation frequency, club documentation, press references, public tracker activity, packaging, and release cadence. It is an evidence-weighted rank—not a market-share estimate.</p>
+        </div>
+        <div class="rank-list">
+          <article class="rank-row"><div><h3><a href="https://stereo.jpn.org/eng/stphmkr/" target="_blank" rel="noopener">StereoPhoto Maker</a></h3><p>De-facto standard; free, Windows-only, single-author.</p></div><div><b>Dominant recommendation footprint.</b><p>Official site showed v6.41 Pro 64-bit, 11 Jul 2026; changelog suggests 1–2 releases yearly. Source: official site, read live.</p></div><span class="signal live">ACTIVE</span></article>
+          <article class="rank-row"><div><h3><a href="https://www.sview.ru" target="_blank" rel="noopener">sView</a></h3><p>Most active open-source stereo viewer.</p></div><div><b>136 GitHub stars · 173 issues · 39 open.</b><p>Release 26.09 dated 13 Sep 2026; roughly quarterly cadence. Source: GitHub API/repository, read live.</p></div><span class="signal live">ACTIVE</span></article>
+          <article class="rank-row"><div><h3><a href="https://bino3d.org" target="_blank" rel="noopener">Bino</a></h3><p>Best distro packaging of the top three.</p></div><div><b>80 GitHub stars · 44 issues · 1 open.</b><p>Pushed 14 Aug 2026; tags through 2.8. Debian, Flathub and nixpkgs packaging evidence was index-level.</p></div><span class="signal live">ACTIVE</span></article>
+          <article class="rank-row"><div><h3>Stereoscopic Player</h3><p>Legacy reference for HTPC workflows.</p></div><div><b>Still recommended; development frozen.</b><p>Official site’s latest release was 2.5.1, 29 Nov 2019. Shareware “from $50” was third-party index evidence, not verified checkout pricing.</p></div><span class="signal frozen">FROZEN</span></article>
+          <article class="rank-row"><div><h3>3DCombine</h3><p>Alive, lightly maintained, commercially obscure.</p></div><div><b>Near-zero visible mindshare.</b><p>2026 v6.19x and about $49.50 were third-party index claims; official price page was unreachable. No Reddit presence found.</p></div><span class="signal live">ALIVE</span></article>
+          <article class="rank-row"><div><h3><a href="https://stereophotoview.bitbucket.io/" target="_blank" rel="noopener">StereoPhotoView</a></h3><p>Tiny, but unusually standards-conscious.</p></div><div><b>Dormant since 9 Jan 2022.</b><p>Desktop C++/Qt app; its site says it always writes the <code>_JPSJPS_</code> descriptor. Source: Bitbucket API and project site, read live.</p></div><span class="signal frozen">DORMANT</span></article>
+        </div>
+        <p class="evidence-note">Outside the living field: TriDef 3D went bankrupt around 2018; NVIDIA 3D Vision reached end-of-life in 2019. Those dates are index-level historical evidence.</p>
+      </div>
+    </section>
+
+    <section id="gripes">
+      <div class="wrap">
+        <div class="section-head">
+          <h2>Where users<br>feel the seams.</h2>
+          <div><p>The loudest problems are less about stereo math than friction: old UI, platform limits, brittle graphics paths, invisible modes, and output that quietly changes the image.</p></div>
+        </div>
+        <div class="controls" aria-label="Filter gripes">
+          <button class="filter" type="button" data-filter="all" aria-pressed="true">All evidence</button>
+          <button class="filter" type="button" data-filter="spm" aria-pressed="false">StereoPhoto Maker</button>
+          <button class="filter" type="button" data-filter="sview" aria-pressed="false">sView</button>
+          <button class="filter" type="button" data-filter="bino" aria-pressed="false">Bino</button>
+          <button class="filter" type="button" data-filter="other" aria-pressed="false">Other viewers</button>
+        </div>
+        <div class="gripes">
+          <article class="gripe primary" data-product="spm"><div class="top"><span class="who">STEREOPHOTO MAKER</span><span class="count">HIGH · diffuse evidence</span></div><h3>Dated, hard-to-learn interface</h3><p>A decade-long review consensus describes a Win95-era, jargon-heavy menu tree. The official changelog says the batch menu moved because File had become too large; an illustrated-guide ecosystem fills the teaching gap.</p><div class="source">Sources: official changelog (live); multiple review and club-doc indexes.</div></article>
+          <article class="gripe primary" data-product="spm"><div class="top"><span class="who">STEREOPHOTO MAKER</span><span class="count">15+ YEARS · persistent</span></div><h3>Windows only</h3><p>Mac and Linux users are repeatedly directed to emulation or another tool. It is a structural complaint with long persistence rather than one hot thread—and a clean PixelSpy differentiator.</p><div class="source">Sources: The Register, Detroit Stereographic Society, Engadget (index).</div></article>
+          <article class="gripe" data-product="sview"><div class="top"><span class="who">sVIEW</span><span class="count">#92: 14 / 4 · #160: 10 / 2</span></div><h3>Fullscreen breaks 3D-mode detection</h3><p>Its bespoke fullscreen window defeats OS/vendor detection. Open issue #160 says Samsung Odyssey 3D Hub does not auto-trigger for sView, unlike VLC or YouTube.</p><div class="source">Counts: comments / people. Source: GitHub issues, read live.</div></article>
+          <article class="gripe" data-product="bino"><div class="top"><span class="who">BINO</span><span class="count">#27: 33 / 2</span></div><h3>Graphics-stack fragility</h3><p>Raspberry Pi users saw a black window without <code>--opengles</code>, unavailable Qt versions, and Flatpak context failures. Related blank-window reports hit Mint and Arch.</p><div class="source">Counts: comments / people. Source: GitHub issues, read live.</div></article>
+          <article class="gripe" data-product="sview"><div class="top"><span class="who">sVIEW</span><span class="count">#148: 15 / 3</span></div><h3>No pure passthrough path</h3><p>A user reported that internal “enhancement” reintroduced interlace ghosting and asked for a source mode with zero modification. This maps directly to PixelSpy’s viewer-that-doesn’t-lie principle.</p><div class="source">Counts: comments / people. Source: GitHub issue, read live.</div></article>
+          <article class="gripe" data-product="bino"><div class="top"><span class="who">BINO</span><span class="count">#46: 11 / 2 · #24: 7</span></div><h3>VR and quad-buffer modes are hidden</h3><p>An undocumented <code>--stereo</code> flag, a black right eye, and settings that did not persist drove the 2.6 release. <code>--vr</code> could yield a black screen with no UI cue.</p><div class="source">Counts: comments / people where available. GitHub, read live.</div></article>
+          <article class="gripe" data-product="spm"><div class="top"><span class="who">SPM + sVIEW</span><span class="count">SMALL · precise</span></div><h3>8-bit processing ceiling</h3><p>SPM cannot save 16-bit TIFF from its 8-bit pipeline. sView’s closed #57 asked for 16-bit TIFF/PNG support (14 comments, 2 people).</p><div class="source"><a href="https://www.dpreview.com/forums/threads/spm-saving-in-tiff-16bits.4807584/" target="_blank" rel="noopener">DPReview thread</a> (index); sView GitHub (live).</div></article>
+          <article class="gripe" data-product="spm"><div class="top"><span class="who">STEREOPHOTO MAKER</span><span class="count">~9+ POSTS · ~5 PEOPLE</span></div><h3>Modern camera import friction</h3><p>Lume Pad users reported “cannot open image” errors and unclear 4V-to-SBS workflows; some used Photopea as an intermediate extraction step.</p><div class="source"><a href="https://forums.leialoft.com/t/converting-lume-4v-stereo-pic-to-sbs-for-use-on-other-devices/1080" target="_blank" rel="noopener">Leia forum</a> (index).</div></article>
+          <article class="gripe" data-product="other"><div class="top"><span class="who">STEREOSCOPIC PLAYER</span><span class="count">THIN · forum/wiki scraps</span></div><h3>Codec and configuration wrangling</h3><p>The densest public evidence is an HTPC wiki workflow: users are told to hand-install x86 DirectShow filters, avoid x64 builds, and sometimes rename H.265 <code>.mkv</code> files to <code>.mp4</code>. A separate AVForums user said paid support was effectively unavailable.</p><div class="source">Evidence is index-level; no credible volume or distinct-participant count was available. Development has been frozen since 2019.</div></article>
+          <article class="gripe" data-product="other"><div class="top"><span class="who">3DCOMBINE</span><span class="count">VERY THIN · no public tracker</span></div><h3>Documentation is the loudest whisper</h3><p>No official forum or issue tracker was found. One indexed review said the program lacked adequate documentation; one 2008 forum participant called automatic 2D→3D conversion weak and manual depth painting too laborious.</p><div class="source">The 2008 thread had 9 posts overall, but the complaint itself was a single-user anecdote. No defensible participant count for the documentation complaint was found.</div></article>
+          <article class="gripe" data-product="other"><div class="top"><span class="who">STEREOPHOTOVIEW</span><span class="count">NO MULTI-PERSON EVIDENCE</span></div><h3>Too little community to rank a gripe</h3><p>Research found no notable forum presence and no credible multi-person complaint thread. Its clearest competitive weakness is product dormancy—the last Bitbucket commit was 9 Jan 2022—not a documented user grievance.</p><div class="source">Project site and Bitbucket API were read live; absence of public complaint evidence is stated rather than filled with an invented gripe.</div></article>
+        </div>
+      </div>
+    </section>
+
+    <section id="support">
+      <div class="wrap">
+        <div class="section-head">
+          <h2>The support<br>map has a hole.</h2>
+          <p>Legacy output formats are well covered. Eye-tracked lenticular and OpenXR are not. The cards avoid false precision: “none found” means the research found no documented support, not that every binary path was tested.</p>
+        </div>
+        <div class="matrix-intro">
+          <div class="callout"><strong>0 of 6 viewers showed Acer SpatialLabs or OpenXR support.</strong><p>sView and Bino have legacy OpenVR/SteamVR-era paths. They do not expose an OpenXR route.</p></div>
+          <div class="legend"><p><b>✓ Documented</b> by a page, manual, or source read.</p><p><b>△ Partial / unclear</b> integration or legacy bridge.</p><p><b>— None found</b> in the researched docs, source, and searches.</p></div>
+        </div>
+        <div class="viewer-grid">
+          <article class="viewer"><h3>StereoPhoto Maker</h3><div class="cap"><b class="no">—</b><span>SpatialLabs / OpenXR</span></div><div class="cap"><b class="partial">△</b><span>Looking Glass<small>Direct panel drive with its own calibration; explicitly bypasses HoloPlay SDK. No quilt I/O found.</small></span></div><div class="cap"><b class="yes">✓</b><span>Fixed interlace, Leia/Lume 4V, page flip</span></div></article>
+          <article class="viewer"><h3>sView</h3><div class="cap"><b class="no">—</b><span>SpatialLabs / OpenXR</span></div><div class="cap"><b class="no">—</b><span>Looking Glass / quilt</span></div><div class="cap"><b class="partial">△</b><span>OpenVR HMD device<small>Plus page flip, row interlace, iZ3D and HDMI 1.4a frame pack.</small></span></div></article>
+          <article class="viewer"><h3>Bino</h3><div class="cap"><b class="no">—</b><span>SpatialLabs / OpenXR</span></div><div class="cap"><b class="no">—</b><span>Looking Glass / quilt</span></div><div class="cap"><b class="partial">△</b><span>QVR + OpenVR when built<small>Also quad-buffer, rows/columns, checkerboard and HDMI frame pack.</small></span></div></article>
+          <article class="viewer"><h3>3DCombine</h3><div class="cap"><b class="no">—</b><span>SpatialLabs / OpenXR</span></div><div class="cap"><b class="partial">△</b><span>“Looking Glass” listed<small>No documented quilt or HoloPlay path. “8/9 Tiled” is listed but not explained.</small></span></div><div class="cap"><b class="yes">✓</b><span>Legacy Zalman, iZ3D, Dromax</span></div></article>
+          <article class="viewer"><h3>Stereoscopic Player</h3><div class="cap"><b class="no">—</b><span>SpatialLabs / OpenXR</span></div><div class="cap"><b class="no">—</b><span>Looking Glass / quilt</span></div><div class="cap"><b class="partial">△</b><span>Legacy autostereo list<small>Sharp, Tridelity and generic single/multi-viewer claims are index-level.</small></span></div></article>
+          <article class="viewer"><h3>StereoPhotoView</h3><div class="cap"><b class="no">—</b><span>SpatialLabs / OpenXR</span></div><div class="cap"><b class="no">—</b><span>Looking Glass / quilt</span></div><div class="cap"><b class="yes">✓</b><span>Row / column interleave</span></div></article>
+        </div>
+
+        <div class="ecosystem" aria-label="Glasses-free ecosystem">
+          <article class="eco"><span class="state">BEST FIT · OPENXR</span><h3>Acer SpatialLabs</h3><p>Eye-tracked two-view lenticular. SpatialLabs Pro devices are OpenXR-conformant; Acer also offers a SteamVR Bridge and engine plugins.</p></article>
+          <article class="eco"><span class="state">MULTIVIEW · 45–100 VIEWS</span><h3>Looking Glass</h3><p>HoloPlay plus quilt format. A stereo pair needs 2→many view synthesis; no researched viewer attempts it.</p></article>
+          <article class="eco"><span class="state">WATCH ITEM · NO PUBLIC SDK</span><h3>Samsung Odyssey 3D</h3><p>27″ 4K 165 Hz G90XF launched Mar 2025 with eye tracking and 3D Hub. No public developer path was found.</p></article>
+          <article class="eco"><span class="state">NOT A DESKTOP PATH</span><h3>Leia / Immersity</h3><p>Active, but Android/mobile. Dimenco is B2B/OEM; Alioscopy and ProMa are signage-oriented.</p></article>
+        </div>
+      </div>
+    </section>
+
+    <section id="strategy">
+      <div class="wrap strategy">
+        <div><p class="eyebrow">Recommendation</p><h2>Sprint narrowly. Preserve the general architecture.</h2></div>
+        <div>
+          <div class="steps">
+            <article class="step"><span class="n">01</span><div><h3>Ship the clean two-view pipeline first</h3><p>Keep view dissection separate from final multiplexing. That supports anaglyph now without committing to a vendor-specific output layer.</p></div></article>
+            <article class="step"><span class="n">02</span><div><h3>Add an OpenXR presentation path</h3><p>On the evidence found, the same desktop path can target SpatialLabs Pro and VR HMDs—two photo-viewer sub-niches with no identified incumbent.</p></div></article>
+            <article class="step"><span class="n">03</span><div><h3>Make display behavior ordinary</h3><p>Use standard fullscreen behavior, expose modes in the UI, preserve source pixels, and keep the cross-platform advantage. Those choices directly answer the loudest competitor failures.</p></div></article>
+            <article class="step"><span class="n">04</span><div><h3>Defer true multiview synthesis</h3><p>Looking Glass is architecturally compatible with pass-per-view, but driving 45–100 views from a stereo pair is a different problem from presenting two eyes.</p></div></article>
+          </div>
+          <div class="watch"><b>Risk to monitor:</b> Samsung could change the map by publishing an SDK. Today’s evidence shows hardware and title partnerships, but no open developer story.</div>
+        </div>
+      </div>
+    </section>
+
+    <section id="method">
+      <div class="wrap method">
+        <div><h3>How to read the evidence</h3><ul><li><b>Verified live</b> means the page, source, API, or manual text was actually read on 3 Oct 2026.</li><li><b>Index</b> means only search-index content was available; it is weaker and labeled where it matters.</li><li>Comment and participant counts are approximate and include maintainers. Many threads are reporter–maintainer exchanges, not crowds.</li><li>Commercial-product grievance evidence is thin. Those rankings are the loudest whispers, not broad sentiment measurements.</li></ul></div>
+        <div><h3>Primary reference points</h3><div class="source-links"><a href="https://stereo.jpn.org/eng/stphmkr/" target="_blank" rel="noopener">SPM official</a><a href="https://www.sview.ru" target="_blank" rel="noopener">sView</a><a href="https://bino3d.org" target="_blank" rel="noopener">Bino</a><a href="https://stereophotoview.bitbucket.io/" target="_blank" rel="noopener">StereoPhotoView</a><a href="https://it-online.co.za/2023/05/29/acer-expands-support-for-spatiallabs-developers/" target="_blank" rel="noopener">Acer OpenXR announcement</a><a href="https://spatiallabs.acer.com/developer" target="_blank" rel="noopener">SpatialLabs developer</a><a href="https://www.digitalengineering247.com/article/looking-glass-pro-holographic-solution-debuts" target="_blank" rel="noopener">Looking Glass overview</a><a href="https://news.samsung.com/uk/samsung-launches-next-gen-odyssey-gaming-monitors-that-showcase-immersive-3d-and-oled-excellence" target="_blank" rel="noopener">Samsung Odyssey 3D</a></div><p>groups.io pages were login-gated during research, so those community findings remain index-level. No binaries were tested.</p></div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="wrap"><span>Stereo viewer competitive analysis</span><span>Research snapshot · 2026-10-03</span></footer>
+
+  <script>
+    (function(){
+      var buttons=document.querySelectorAll('.filter');
+      var cards=document.querySelectorAll('.gripe');
+      buttons.forEach(function(button){
+        button.addEventListener('click',function(){
+          var choice=button.getAttribute('data-filter');
+          buttons.forEach(function(b){b.setAttribute('aria-pressed',String(b===button));});
+          cards.forEach(function(card){
+            var product=card.getAttribute('data-product');
+            var show=choice==='all'||product===choice;
+            card.setAttribute('data-hidden',String(!show));
+          });
+        });
+      });
+    }());
+  </script>
+</body>
+</html>

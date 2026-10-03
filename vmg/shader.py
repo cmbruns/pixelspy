@@ -10,7 +10,7 @@ from OpenGL.GL.shaders import compileProgram, compileShader
 from OpenGL.GL.EXT.texture_filter_anisotropic import GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT, GL_TEXTURE_MAX_ANISOTROPY_EXT
 
 from vmg.tiled_image import DngTile, Tile
-from vmg.interfaces import RenderStateLike, TiledImageLike, InputFormat, PhotometricScale, TileLike, ShaderProgramLike
+from vmg.interfaces import RenderStateLike, TiledImageLike, InputPanoramaFormat, PhotometricScale, TileLike, ShaderProgramLike
 from vmg.resources import resource_stream, resource_string
 from vmg.shader_exception import compile_shader
 from vmg.uniforms import Sampler2DUniform, DngUniforms, TileUniforms, ViewerUniforms, NumeralUniforms, PanoUniforms, \
@@ -424,7 +424,7 @@ class SphericalShader(IImageShader, ShaderProgramLike):
         do_numerals = state.opx_scale_qwn() < 0.2
         if do_numerals:
             self.numeral_shader.paint_gl(state, image, render_pass=1)
-        if image.md.input_format == InputFormat.DUAL_FISHEYE:
+        if image.md.input_panorama_format == InputPanoramaFormat.DUAL_FISHEYE:
             # second render pass for rear lens
             GL.glUseProgram(self.shader)
             self.uRenderPass.set(2)
@@ -501,7 +501,7 @@ class SphericalDngShader(IImageShader):
         self._paint_one_pass(image)
         if do_numerals:
             self.numeral_shader.paint_gl(state, image, render_pass=1)
-        if image.md.input_format == InputFormat.DUAL_FISHEYE:
+        if image.md.input_panorama_format == InputPanoramaFormat.DUAL_FISHEYE:
             # second render pass for rear lens
             GL.glUseProgram(self.shader)
             self.uRenderPass.set(2)

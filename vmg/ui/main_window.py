@@ -27,7 +27,7 @@ from vmg.command import CropToSelection
 from vmg.image_folders import SAVE_IMAGE_FILTERS, SUPPORTED_EXTENSIONS, get_save_folder, log_successful_save, \
     log_successful_load, OPEN_IMAGE_FILTERS, get_load_folder
 from vmg.image_loader import ImageLoader
-from vmg.interfaces import TiledImageLike, InputFormat
+from vmg.interfaces import TiledImageLike, InputPanoramaFormat
 from vmg.ui.demosaic_dialog import DemosaicDialog
 from vmg.ui.lens_dialog import LensDialog
 from vmg.log import LogDialog
@@ -396,7 +396,7 @@ class VimageMainWindow(Ui_MainWindow, QtWidgets.QMainWindow):
         self.actionSave_Current_View_As.setEnabled(True)
         self.actionCopy.setEnabled(True)
         self.actionReset_View.setEnabled(True)
-        self.actionSelect_Rectangle.setEnabled(image.md.input_format == InputFormat.STANDARD_PHOTO)
+        self.actionSelect_Rectangle.setEnabled(image.md.input_panorama_format == InputPanoramaFormat.FLAT)
         self.actionSelect_None.trigger()
         self.actionZoom_In.setEnabled(True)
         self.actionZoom_Out.setEnabled(True)
@@ -487,14 +487,14 @@ class VimageMainWindow(Ui_MainWindow, QtWidgets.QMainWindow):
         self.load_image_from_file(self.image_list[self.image_index])
         self.update_previous_next()
 
-    def set_input_format(self, input_format: InputFormat):
-        if input_format == InputFormat.STANDARD_PHOTO:
+    def set_input_format(self, input_format: InputPanoramaFormat):
+        if input_format == InputPanoramaFormat.FLAT:
             self.actionPerspectiveInput.setChecked(True)
-        elif input_format == InputFormat.DUAL_FISHEYE:
+        elif input_format == InputPanoramaFormat.DUAL_FISHEYE:
             self.actionDual_FisheyeInput.setChecked(True)
-        elif input_format == InputFormat.EQUIRECTANGULAR:
+        elif input_format == InputPanoramaFormat.EQUIRECTANGULAR:
             self.actionEquirectangularInput.setChecked(True)
-        elif input_format == InputFormat.SINUSOIDAL:
+        elif input_format == InputPanoramaFormat.SINUSOIDAL:
             self.actionSinusoidalInput.setChecked(True)
         else:
             raise Exception("Unexpected InputProjection")
@@ -692,7 +692,7 @@ class VimageMainWindow(Ui_MainWindow, QtWidgets.QMainWindow):
     @QtCore.Slot(bool)  # noqa
     def on_actionDual_FisheyeInput_toggled(self, is_checked: bool):  # noqa
         if is_checked:
-            if self.imageWidgetGL.set_input_format(InputFormat.DUAL_FISHEYE):
+            if self.imageWidgetGL.set_input_format(InputPanoramaFormat.DUAL_FISHEYE):
                 self.imageWidgetGL.update()
 
     @QtCore.Slot(bool)  # noqa
@@ -703,7 +703,7 @@ class VimageMainWindow(Ui_MainWindow, QtWidgets.QMainWindow):
     @QtCore.Slot(bool)  # noqa
     def on_actionEquirectangularInput_toggled(self, is_checked: bool):  # noqa
         if is_checked:
-            if self.imageWidgetGL.set_input_format(InputFormat.EQUIRECTANGULAR):
+            if self.imageWidgetGL.set_input_format(InputPanoramaFormat.EQUIRECTANGULAR):
                 self.imageWidgetGL.update()
 
     @QtCore.Slot(bool)  # noqa
@@ -845,7 +845,7 @@ class VimageMainWindow(Ui_MainWindow, QtWidgets.QMainWindow):
     @QtCore.Slot(bool)  # noqa
     def on_actionPerspectiveInput_toggled(self, is_checked: bool):  # noqa
         if is_checked:
-            if self.imageWidgetGL.set_input_format(InputFormat.STANDARD_PHOTO):
+            if self.imageWidgetGL.set_input_format(InputPanoramaFormat.FLAT):
                 self.imageWidgetGL.update()
 
     @QtCore.Slot()  # noqa
@@ -948,7 +948,7 @@ class VimageMainWindow(Ui_MainWindow, QtWidgets.QMainWindow):
     @QtCore.Slot(bool)  # noqa
     def on_actionSinusoidalInput_toggled(self, is_checked: bool):  # noqa
         if is_checked:
-            if self.imageWidgetGL.set_input_format(InputFormat.SINUSOIDAL):
+            if self.imageWidgetGL.set_input_format(InputPanoramaFormat.SINUSOIDAL):
                 self.imageWidgetGL.update()
 
     @QtCore.Slot(bool)  # noqa

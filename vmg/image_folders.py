@@ -7,7 +7,7 @@ from PySide6.QtCore import QSettings, QStandardPaths, QDir
 SUPPORTED_EXTENSIONS = {
     ".bmp", ".dat", ".dng", ".heic", ".heif", ".gif",
     ".pbm", ".pgm", ".ppm", ".png", ".jpg",
-    ".jpeg", ".tif", ".tiff", ".webp"
+    ".jpeg", ".jps", ".tif", ".tiff", ".webp"
 }
 
 # Unified Open Filter string mapping every single format out-of-the-box
@@ -21,6 +21,7 @@ OPEN_IMAGE_FILTERS = (
     "BMP Images (*.bmp);;"
     "PPM Images (*.ppm *.pgm *.pbm);;"
     "GIF Images (*.gif);;"
+    "JPS 3D Images (*.jps);;"
     "Minecraft Maps (*.dat);;"
     "DNG Images (*.dng);;"
     "All files (*)"

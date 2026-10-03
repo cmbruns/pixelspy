@@ -130,7 +130,7 @@ class PanoUniforms(UniformGroup):
         self["display_projection"].set(state.display_projection.value)
         self["geo_rot_usr"].set(1, True, state.geo_rot_usr)
         self["pcm_rot_geo"].set(1, True, image.md.pcm_R_geo)
-        self["input_format"].set(image.md.input_format.value)
+        self["input_format"].set(image.md.input_panorama_format.value)
         self["df_fov_radians"].set(image.md.inscribed_fov_radians)
         self["df_lens_rot_radians"].set(image.md.df_lens_rot_radians)
         self["df_front_center_scale"].set(*image.md.df_front_center_scale)

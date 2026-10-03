@@ -10,7 +10,7 @@ from PySide6.QtGui import QPainter, QPen, QColor, QAction
 from PySide6.QtWidgets import QGestureEvent, QSwipeGesture, QPinchGesture
 
 from vmg.feature_toggle import ENABLE_VR_VIEW
-from vmg.interfaces import TiledImageLike, InputFormat, PhotometricScale, DemosaicMethod, RenderStateLike
+from vmg.interfaces import TiledImageLike, InputPanoramaFormat, PhotometricScale, DemosaicMethod, RenderStateLike
 from vmg.offscreen_context import OffscreenContext
 from vmg.selection_box import (CursorHolder)
 from vmg.state import ViewState
@@ -90,7 +90,7 @@ class ImageWidgetGL(QtOpenGLWidgets.QOpenGLWidget):
         self.sphere_shader.initialize_gl()
         self.sphere_dng_shader.initialize_gl()
 
-    input_format_changed = QtCore.Signal(InputFormat)
+    input_format_changed = QtCore.Signal(InputPanoramaFormat)
 
     def keyPressEvent(self, event):
         self.view_state.key_press_event(event)
@@ -243,8 +243,8 @@ class ImageWidgetGL(QtOpenGLWidgets.QOpenGLWidget):
     def _linear_from_srgb(image: NDArray):
         return numpy.where(image >= 0.04045, ((image + 0.055) / 1.055)**2.4, image/12.92)
 
-    def set_input_format(self, input_format: InputFormat) -> bool:
-        if input_format == InputFormat.STANDARD_PHOTO:
+    def set_input_format(self, input_format: InputPanoramaFormat) -> bool:
+        if input_format == InputPanoramaFormat.FLAT:
             if self.image and self.image.md.cfa_pattern != (-1, -1, -1, -1):
                 self.program = self.rect_dng_shader
             else:
@@ -258,8 +258,8 @@ class ImageWidgetGL(QtOpenGLWidgets.QOpenGLWidget):
             return False
         # if self.image.md.input_format == input_format:
         #     return False
-        self.image.md.input_format = input_format
-        self.signal_360.emit(input_format != InputFormat.STANDARD_PHOTO)  # noqa
+        self.image.md.input_panorama_format = input_format
+        self.signal_360.emit(input_format != InputPanoramaFormat.FLAT)  # noqa
         logger.debug(f"input projection = {input_format}")
         self.view_state.update_input_format()
         self.input_format_changed.emit(input_format)  # noqa
@@ -271,7 +271,7 @@ class ImageWidgetGL(QtOpenGLWidgets.QOpenGLWidget):
         self.view_state.reset()
         assert self.image is not None
         self.view_state.set_image(self.image)
-        self.set_input_format(self.image.md.input_format)
+        self.set_input_format(self.image.md.input_panorama_format)
         w, h = self.image.md.size_opx
         self.image_size_changed.emit(int(w), int(h))  # noqa
         self.update()

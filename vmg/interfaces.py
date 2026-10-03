@@ -31,7 +31,8 @@ class ImageMetadataLike(Protocol):
     df_front_center_scale: tuple[Float, Float, Float, Float]
     df_rear_center_scale: tuple[Float, Float, Float, Float]
     file_name: Optional[str]
-    input_format: InputFormat
+    input_panorama_format: InputPanoramaFormat
+    input_stereo_layout: InputStereoLayout
     inscribed_fov_radians: Float
     # is_cfa: bool
     cfa_pattern: tuple[int, int, int, int]
@@ -169,11 +170,17 @@ class DemosaicMethod(enum.Enum):
     DEFAULT = LANCZOS_7X7
 
 
-class InputFormat(enum.Enum):
+class InputPanoramaFormat(enum.Enum):
     EQUIRECTANGULAR = 0   # stitched pano
     DUAL_FISHEYE = 1      # raw fisheye pair
-    STANDARD_PHOTO = 2    # normal 2D photo
+    FLAT = 2    # normal 2D photo
     SINUSOIDAL = 3        #
+
+
+class InputStereoLayout(enum.Enum):
+    MONO = 0
+    SBS_LR = 1
+    SBS_RL = 2
 
 
 class PhotometricScale(enum.Enum):
