@@ -1,0 +1,947 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="color-scheme" content="light dark" />
+    <!-- Empty inline icon: stops the browser fetching /favicon.ico, which
+         lives outside the artifact's routes and 404s. -->
+    <link rel="icon" href="data:," />
+    <title>Image Viewer Irritations</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Source+Serif+4:opsz,wght@8..60,600;8..60,700&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --bg: #f7f5f0;
+        --bg-raise: #fffdf8;
+        --ink: #1c1a16;
+        --ink-soft: #4a463d;
+        --ink-faint: #7a7568;
+        --line: #ddd8cc;
+        --line-strong: #c6c0b0;
+        --accent: #b13a17;
+        --accent-soft: rgba(177, 58, 23, 0.1);
+        --rule-bg: #f2eee2;
+        --chip-bg: #ede9dd;
+        --meter-off: #e3ded0;
+        --on-dark: #fffdf8;
+      }
+      @media (prefers-color-scheme: dark) {
+        :root {
+          --bg: #161513;
+          --bg-raise: #1e1c19;
+          --ink: #ece7db;
+          --ink-soft: #c4beb0;
+          --ink-faint: #968f80;
+          --line: #33302a;
+          --line-strong: #4a463c;
+          --accent: #e8795a;
+          --accent-soft: rgba(232, 121, 90, 0.14);
+          --rule-bg: #211e1a;
+          --chip-bg: #262320;
+          --meter-off: #322f2a;
+          --on-dark: #161513;
+        }
+      }
+
+      * { box-sizing: border-box; }
+      html { -webkit-text-size-adjust: 100%; }
+      body {
+        margin: 0;
+        background: var(--bg);
+        color: var(--ink);
+        font-family: "IBM Plex Sans", system-ui, sans-serif;
+        font-size: 16px;
+        line-height: 1.55;
+      }
+      .wrap {
+        max-width: 1060px;
+        margin: 0 auto;
+        padding: 0 clamp(16px, 4vw, 40px);
+      }
+
+      /* ---------- header ---------- */
+      header.hero {
+        padding: clamp(36px, 6vw, 64px) 0 8px;
+      }
+      .hero h1 {
+        font-family: "Source Serif 4", Georgia, serif;
+        font-weight: 700;
+        font-size: clamp(2rem, 5.4vw, 3.4rem);
+        line-height: 1.06;
+        letter-spacing: -0.01em;
+        margin: 0 0 14px;
+      }
+      .hero h1 em {
+        font-style: italic;
+        color: var(--accent);
+      }
+      .hero .lede {
+        font-size: clamp(1.02rem, 2.2vw, 1.18rem);
+        color: var(--ink-soft);
+        max-width: 62ch;
+        margin: 0 0 28px;
+      }
+      .method {
+        display: flex;
+        flex-wrap: wrap;
+        border-top: 2px solid var(--ink);
+        border-bottom: 1px solid var(--line-strong);
+      }
+      .method div {
+        padding: 12px 18px 12px 0;
+        margin-right: 26px;
+      }
+      .method dt {
+        font-family: "IBM Plex Mono", monospace;
+        font-size: 0.68rem;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: var(--ink-faint);
+        margin: 0 0 2px;
+      }
+      .method dd {
+        margin: 0;
+        font-weight: 600;
+        font-size: 0.98rem;
+      }
+      .method dd span { font-weight: 400; color: var(--ink-soft); font-size: 0.86rem; }
+
+      /* ---------- controls ---------- */
+      .controls {
+        position: sticky;
+        top: 0;
+        z-index: 20;
+        background: var(--bg);
+        padding: 16px 0 12px;
+        border-bottom: 1px solid var(--line);
+      }
+      .controls-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        align-items: center;
+      }
+      .controls-label {
+        font-family: "IBM Plex Mono", monospace;
+        font-size: 0.68rem;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: var(--ink-faint);
+        margin-right: 4px;
+      }
+      .chip {
+        font: inherit;
+        font-size: 0.82rem;
+        font-weight: 500;
+        padding: 5px 12px;
+        border: 1px solid var(--line-strong);
+        border-radius: 999px;
+        background: var(--chip-bg);
+        color: var(--ink-soft);
+        cursor: pointer;
+        transition: background 0.12s, color 0.12s, border-color 0.12s;
+      }
+      .chip:hover { border-color: var(--ink-faint); color: var(--ink); }
+      .chip[aria-pressed="true"] {
+        background: var(--ink);
+        border-color: var(--ink);
+        color: var(--on-dark);
+      }
+      .chip.danger[aria-pressed="true"] {
+        background: var(--accent);
+        border-color: var(--accent);
+        color: #fff;
+      }
+      .chip:focus-visible, a:focus-visible, button:focus-visible {
+        outline: 2px solid var(--accent);
+        outline-offset: 2px;
+      }
+      .count-line {
+        font-family: "IBM Plex Mono", monospace;
+        font-size: 0.74rem;
+        color: var(--ink-faint);
+        margin: 10px 0 0;
+      }
+
+      /* ---------- ranked entries ---------- */
+      main { padding: 8px 0 0; }
+      .entry {
+        display: grid;
+        grid-template-columns: 84px 1fr;
+        gap: 0 22px;
+        padding: 30px 0 28px;
+        border-bottom: 1px solid var(--line);
+      }
+      .entry .rank {
+        font-family: "Source Serif 4", Georgia, serif;
+        font-weight: 700;
+        font-size: 2.6rem;
+        line-height: 1;
+        color: var(--ink-faint);
+        padding-top: 4px;
+      }
+      .entry.top .rank { color: var(--accent); }
+      .entry h2 {
+        font-family: "Source Serif 4", Georgia, serif;
+        font-weight: 600;
+        font-size: clamp(1.25rem, 2.6vw, 1.55rem);
+        line-height: 1.2;
+        margin: 0 0 8px;
+      }
+      .meta-line {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px 14px;
+        align-items: center;
+        font-size: 0.8rem;
+        margin-bottom: 10px;
+      }
+      .viewer-tag {
+        font-family: "IBM Plex Mono", monospace;
+        font-weight: 600;
+        font-size: 0.74rem;
+        letter-spacing: 0.04em;
+        padding: 2px 8px;
+        border: 1px solid var(--ink);
+        border-radius: 3px;
+      }
+      .trust-flag {
+        font-family: "IBM Plex Mono", monospace;
+        font-size: 0.7rem;
+        font-weight: 600;
+        letter-spacing: 0.04em;
+        color: var(--accent);
+        background: var(--accent-soft);
+        padding: 2px 8px;
+        border-radius: 3px;
+      }
+      .people { color: var(--ink-soft); }
+      .people-label {
+        font-family: "IBM Plex Mono", monospace;
+        font-size: 0.66rem;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        color: var(--ink-faint);
+        margin-right: 6px;
+      }
+      .loudness {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin: 0 0 12px;
+        font-family: "IBM Plex Mono", monospace;
+        font-size: 0.7rem;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        color: var(--ink-faint);
+      }
+      .meter { display: inline-flex; gap: 3px; }
+      .meter i {
+        width: 26px;
+        height: 7px;
+        border-radius: 1px;
+        background: var(--meter-off);
+        display: block;
+      }
+      .meter i.on { background: var(--accent); }
+      .entry p { margin: 0 0 10px; color: var(--ink-soft); max-width: 68ch; }
+      .entry p strong { color: var(--ink); }
+      .tag-row { display: flex; flex-wrap: wrap; gap: 6px; margin: 4px 0 14px; }
+      .ptag {
+        font-size: 0.74rem;
+        font-weight: 500;
+        color: var(--ink-soft);
+        background: var(--chip-bg);
+        border: 1px solid var(--line);
+        padding: 2px 9px;
+        border-radius: 999px;
+      }
+      .rule {
+        background: var(--rule-bg);
+        border-left: 3px solid var(--accent);
+        padding: 12px 16px;
+        margin: 0 0 14px;
+        max-width: 72ch;
+      }
+      .rule .rule-label {
+        font-family: "IBM Plex Mono", monospace;
+        font-size: 0.66rem;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: var(--accent);
+        display: block;
+        margin-bottom: 3px;
+      }
+      .rule p { margin: 0; color: var(--ink); font-size: 0.94rem; }
+      .sources { font-size: 0.8rem; color: var(--ink-faint); }
+      .sources .src-label {
+        font-family: "IBM Plex Mono", monospace;
+        font-size: 0.66rem;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        margin-right: 8px;
+      }
+      .sources a {
+        color: var(--ink-soft);
+        text-decoration: underline;
+        text-decoration-color: var(--line-strong);
+        text-underline-offset: 2px;
+        margin-right: 12px;
+        white-space: nowrap;
+      }
+      .sources a:hover { color: var(--accent); text-decoration-color: var(--accent); }
+      .sources .verified {
+        font-family: "IBM Plex Mono", monospace;
+        font-size: 0.64rem;
+        color: var(--ink-faint);
+      }
+
+      .empty-state {
+        display: none;
+        padding: 48px 0;
+        text-align: center;
+        color: var(--ink-faint);
+        font-size: 0.95rem;
+      }
+
+      /* ---------- sections ---------- */
+      section.block { padding: clamp(36px, 5vw, 56px) 0 8px; }
+      section.block > h2 {
+        font-family: "Source Serif 4", Georgia, serif;
+        font-weight: 700;
+        font-size: clamp(1.5rem, 3.4vw, 2rem);
+        margin: 0 0 6px;
+        padding-top: 26px;
+        border-top: 2px solid var(--ink);
+      }
+      section.block > .sub {
+        color: var(--ink-soft);
+        max-width: 64ch;
+        margin: 0 0 26px;
+      }
+
+      /* pattern tally */
+      .tally { display: grid; gap: 9px; }
+      .tally-row {
+        display: grid;
+        grid-template-columns: minmax(150px, 240px) 1fr 34px;
+        gap: 14px;
+        align-items: center;
+        font-size: 0.88rem;
+      }
+      .tally-row .tname { font-weight: 500; }
+      .tally-row .tbar {
+        height: 12px;
+        background: var(--meter-off);
+        border-radius: 2px;
+        overflow: hidden;
+      }
+      .tally-row .tbar i {
+        display: block;
+        height: 100%;
+        background: var(--accent);
+      }
+      .tally-row .tnum {
+        font-family: "IBM Plex Mono", monospace;
+        font-size: 0.82rem;
+        color: var(--ink-soft);
+        text-align: right;
+      }
+      .tally-note { font-size: 0.8rem; color: var(--ink-faint); margin-top: 14px; max-width: 64ch; }
+
+      /* manifesto */
+      .manifesto {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+        gap: 1px;
+        background: var(--line);
+        border: 1px solid var(--line);
+      }
+      .tenet {
+        background: var(--bg-raise);
+        padding: 20px 22px 18px;
+      }
+      .tenet .t-num {
+        font-family: "IBM Plex Mono", monospace;
+        font-size: 0.7rem;
+        letter-spacing: 0.08em;
+        color: var(--accent);
+        display: block;
+        margin-bottom: 6px;
+      }
+      .tenet h3 {
+        font-family: "Source Serif 4", Georgia, serif;
+        font-size: 1.08rem;
+        font-weight: 700;
+        margin: 0 0 6px;
+        line-height: 1.25;
+      }
+      .tenet p { margin: 0 0 8px; font-size: 0.9rem; color: var(--ink-soft); }
+      .tenet .answers {
+        font-family: "IBM Plex Mono", monospace;
+        font-size: 0.68rem;
+        color: var(--ink-faint);
+      }
+
+      /* open questions */
+      .open-q { max-width: 72ch; }
+      .open-q li { margin-bottom: 10px; color: var(--ink-soft); }
+      .open-q li::marker { color: var(--accent); }
+
+      footer {
+        margin-top: 56px;
+        border-top: 1px solid var(--line-strong);
+        padding: 22px 0 44px;
+        font-size: 0.82rem;
+        color: var(--ink-faint);
+        max-width: 72ch;
+      }
+      footer p { margin: 0 0 8px; }
+
+      @media (max-width: 640px) {
+        .entry { grid-template-columns: 52px 1fr; gap: 0 14px; }
+        .entry .rank { font-size: 1.9rem; }
+        .tally-row { grid-template-columns: 110px 1fr 28px; gap: 10px; font-size: 0.8rem; }
+        .sources a { white-space: normal; }
+      }
+      @media (prefers-reduced-motion: no-preference) {
+        .entry { transition: opacity 0.15s; }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="wrap">
+      <header class="hero">
+        <h1>What image viewers do<br />that makes people <em>leave.</em></h1>
+        <p class="lede">
+          A survey of the complaints that irritated more than one person across seven popular
+          Windows image viewers — ranked by discussion volume: how much was posted and how
+          many distinct people chimed in. Great software removes friction more than it adds
+          features; this is the empirical map of where the friction lives, so a new viewer
+          can pre-avoid it.
+        </p>
+        <dl class="method">
+          <div>
+            <dt>Viewers swept</dt>
+            <dd>7 <span>— IrfanView, XnView MP, FastStone, ImageGlass, nomacs, Honeyview, qView</span></dd>
+          </div>
+          <div>
+            <dt>Ranked findings</dt>
+            <dd>13 <span>— multi-person irritations only</span></dd>
+          </div>
+          <div>
+            <dt>Researched</dt>
+            <dd>Oct 2, 2026 <span>— public forums &amp; issue trackers</span></dd>
+          </div>
+          <div>
+            <dt>Ranking basis</dt>
+            <dd>Reply volume + people <span>— counts approximate, not deduplicated across sites; &ldquo;not established&rdquo; where the pages didn't support a count</span></dd>
+          </div>
+        </dl>
+      </header>
+
+      <div class="controls" role="group" aria-label="Filter findings">
+        <div class="controls-row" id="viewerFilters">
+          <span class="controls-label">Viewer</span>
+          <button class="chip" data-viewer="all" aria-pressed="true">All viewers</button>
+          <button class="chip" data-viewer="IrfanView" aria-pressed="false">IrfanView</button>
+          <button class="chip" data-viewer="ImageGlass" aria-pressed="false">ImageGlass</button>
+          <button class="chip" data-viewer="XnView MP" aria-pressed="false">XnView MP</button>
+          <button class="chip" data-viewer="FastStone" aria-pressed="false">FastStone</button>
+          <button class="chip" data-viewer="nomacs" aria-pressed="false">nomacs</button>
+          <button class="chip" data-viewer="qView" aria-pressed="false">qView</button>
+          <button class="chip" data-viewer="Honeyview" aria-pressed="false">Honeyview</button>
+        </div>
+        <div class="controls-row" style="margin-top: 8px">
+          <span class="controls-label">Severity</span>
+          <button class="chip danger" id="trustToggle" aria-pressed="false">
+            Only findings that cost users data or trust
+          </button>
+          <button class="chip" id="resetFilters" aria-pressed="false">Reset</button>
+        </div>
+        <p class="count-line" id="countLine" aria-live="polite"></p>
+      </div>
+
+      <main id="entries"></main>
+      <div class="empty-state" id="emptyState">
+        No findings match that filter. <button class="chip" id="emptyReset">Show everything</button>
+      </div>
+
+      <section class="block" aria-labelledby="tallyHeading">
+        <h2 id="tallyHeading">Where the friction clusters</h2>
+        <p class="sub">
+          The same patterns recur across unrelated viewers. Counted by how many of the seven
+          viewers produced multi-person complaints of each kind.
+        </p>
+        <div class="tally" id="tally"></div>
+        <p class="tally-note">
+          Zoom/navigation behavior and fullscreen/slideshow quirks dominate, followed by startup
+          speed and &ldquo;the viewer lies&rdquo; problems — wrong resampling, wrong colors,
+          embedded previews standing in for real data. That ordering is the design brief:
+          input behavior and pixel honesty hurt more people than missing features do.
+        </p>
+      </section>
+
+      <section class="block" aria-labelledby="manifestoHeading">
+        <h2 id="manifestoHeading">The pre-avoidance list</h2>
+        <p class="sub">
+          Each finding above converts into a rule a new viewer can hold itself to. These are
+          the design commitments the evidence supports — what &ldquo;not hurting the user&rdquo;
+          looks like in practice.
+        </p>
+        <div class="manifesto" id="manifesto"></div>
+      </section>
+
+      <section class="block" aria-labelledby="openHeading">
+        <h2 id="openHeading">What this survey couldn't settle</h2>
+        <ul class="open-q">
+          <li>
+            <strong>XnView's own forum couldn't be read.</strong> newsgroup.xnview.com was
+            blocked in the research environment, so XnView's ranking rests on changelogs,
+            reviews, and one multi-user thread — it's the least certain placement on the list.
+          </li>
+          <li>
+            <strong>nomacs volumes weren't verified one by one.</strong> The nomacs cluster is
+            ranked on issue count plus a secondary research document that cites the issues;
+            individual comment counts may vary.
+          </li>
+          <li>
+            <strong>qView's evidence is fork-shaped.</strong> Its tracker is small, so its
+            irritations show up as two maintained forks and changelog entries rather than
+            high-comment threads — real pain, measured differently.
+          </li>
+          <li>
+            <strong>IrfanView forum counts are approximate.</strong> Thread URLs carry trailing
+            slugs and fetched text showed subsets of posts, so reply counts are estimates,
+            not exact tallies.
+          </li>
+        </ul>
+      </section>
+
+      <footer>
+        <p>
+          Sources are linked under each finding. Two sources were read live on the research
+          date (marked &ldquo;read live&rdquo;); the rest come from search-index content.
+          Reply counts and poster counts are approximations from what the pages showed.
+        </p>
+        <p>
+          Survey conducted October 2, 2026, across the IrfanView forum, GitHub issue trackers,
+          ElevenForum, Tom's Hardware, DPReview, Pentax Forums, ResetEra, and review sites.
+        </p>
+      </footer>
+    </div>
+
+    <script>
+      var FINDINGS = [
+        {
+          rank: 1,
+          viewer: "IrfanView",
+          title: "The mouse wheel changes the photo instead of zooming — and you can't tell which it will do",
+          scale: 5,
+          people: "Many — 3+ threads of posters, 15+ posts on ResetEra alone",
+          scaleNote: "3+ forum threads (moderator-merged) + a 15+-post ResetEra thread",
+          trust: false,
+          tags: ["Zoom & navigation input", "Confusing UI"],
+          body: [
+            "By default the mouse wheel advances to the next image rather than zooming. Worse, the wheel is dual-function: sometimes it scrolls, sometimes it jumps to the next file, depending on whether scrollbars are visible — which is invisible in fullscreen, where you can't see them. A forum regular admits: \u201CI find that very frustrating, particularly in Fullscreen mode.\u201D",
+            "The destructive version: users report bumping the wheel accidentally while renaming a photo, so the rename lands on the <strong>wrong photo</strong>. The moderator noted \u201Ca lot of discussion on this in the forum\u201D and merged the feature requests. On ResetEra, a user cites exactly this as what they hate about IrfanView — people don't just complain, they leave over it."
+          ],
+          rule: "One input, one action, everywhere — including fullscreen. Zoom is zoom; navigation is navigation; and a rename in progress must be immune to stray wheel bumps.",
+          sources: [
+            { label: "IrfanView support forum (wheel threads)", url: "https://irfanview-forum.de/forum/program/support/" },
+            { label: "ResetEra viewer thread", url: "https://www.resetera.com/threads/need-recommendations-on-image-viewers-for-windows-what-are-some-of-your-favorites.402646/" }
+          ]
+        },
+        {
+          rank: 2,
+          viewer: "ImageGlass",
+          title: "Settings silently reset themselves — especially with more than one window open",
+          scale: 5,
+          people: "Several commenters on #2343, plus the reporters of #2153 and #1915 before them",
+          scaleNote: "One long multi-comment issue + two earlier identical reports it references",
+          trust: true,
+          tags: ["Settings persistence", "Trust violations"],
+          body: [
+            "Changed settings revert to defaults, especially when multiple instances write the same <strong>igconfig.json</strong> at once — a race the v10.0.6 changelog eventually fixed (#2431). The on-by-default \u201CMonitor file changes in the viewing folder\u201D option also swapped users' open images out from under them and made right-click copy copy the <em>wrong image</em> — which \u201Ctook a while to figure out.\u201D",
+            "What turned a bug into an irritation: an earlier identical report (#2153) was closed by the developer with \u201CI lost my motivation to investigate this for you.\u201D Users remember that longer than the bug."
+          ],
+          rule: "Settings writes are atomic and single-owner. No default may watch a folder and change what's on screen. A user's configuration is their data — treat losing it as data loss.",
+          sources: [
+            { label: "Issue #2343 (settings reset)", url: "https://github.com/d2phap/imageglass/issues/2343", live: true },
+            { label: "ImageGlass releases (v10.0.6 fix #2431)", url: "https://github.com/d2phap/ImageGlass/releases" }
+          ]
+        },
+        {
+          rank: 3,
+          viewer: "ImageGlass",
+          title: "Slideshow flickers black on every transition; F11 doesn't mean what it means everywhere else",
+          scale: 5,
+          people: "At least 6 distinct reporters across the issue cluster",
+          scaleNote: "6+ distinct issues in one cluster + multiple changelog fixes",
+          trust: false,
+          tags: ["Fullscreen & slideshow", "Confusing UI"],
+          body: [
+            "The slideshow goes fully black during every image transition (#2252, with video evidence). Meanwhile <strong>F11 means slideshow in ImageGlass but fullscreen in other apps</strong> — \u201CIt is unfortunate that ImageGlass' key mapping is different from other apps\u201D — and F11/F12 behavior is erratic besides (#885).",
+            "Around the edges: the slideshow didn't keep the system awake (fixed in v10.0.6, #2442), fullscreen gallery could go black (#2443), fullscreen spilled part of the image onto a second monitor (#1479), and the slideshow auto-resumed after manual navigation — one user downgraded to v6 to escape it."
+          ],
+          rule: "F11 is fullscreen. Transitions never flash black — keep the old frame until the new one is ready. A slideshow obeys the user's hands: navigate manually and it stays manual.",
+          sources: [
+            { label: "Issue #2252 (black flicker)", url: "https://github.com/d2phap/imageglass/issues/2252", live: true },
+            { label: "Issue #885 (erratic F11/F12)", url: "https://github.com/d2phap/imageglass/issues/885" },
+            { label: "Issue #789 (disable slideshow?)", url: "https://github.com/d2phap/imageglass/issues/789" },
+            { label: "Issue #1479 (multi-monitor spill)", url: "https://github.com/d2phap/imageglass/issues/1479" }
+          ]
+        },
+        {
+          rank: 4,
+          viewer: "ImageGlass",
+          title: "Startup so slow it spawned a diagnosis thread — 53 background processes, 15–60 second launches",
+          scale: 5,
+          people: "4+ distinct reporters (#1944, #1290, #794, #462)",
+          scaleNote: "4 issues + a rewrite-level changelog acknowledgment",
+          trust: false,
+          tags: ["Speed & startup"],
+          body: [
+            "Users benchmark viewers against IrfanView and FastStone's sub-second launches, and ImageGlass lost. The pathological case: toolbar icons stored as SVG were converted via ImageMagick→Inkscape <strong>at every launch</strong> — 53 inkscape.exe instances, 100% CPU, ~15 seconds on a desktop and ~1 minute on a laptop (#1944).",
+            "Separately: RAW files open very slowly (#1290), an explicit issue asks for faster launch (#794), and #462 documents synchronous loading that freezes the whole UI, executes queued input all at once, and can fail outright on slow or network drives — with no loading indicator. v10's AOT compilation, advertised as \u201Csignificantly reducing startup overhead,\u201D is the changelog admitting the irritation was widespread."
+          ],
+          rule: "Launch sub-second and never block the UI thread. Loading shows a spinner, not a frozen window; a slow drive is a progress bar, not a crash or an exit.",
+          sources: [
+            { label: "Issue #1944 (53 inkscape.exe)", url: "https://github.com/d2phap/imageglass/issues/1944" },
+            { label: "Issue #1290 (RAW slowness)", url: "https://github.com/d2phap/ImageGlass/issues/1290" },
+            { label: "Issue #462 (synchronous loading freezes UI)", url: "https://github.com/d2phap/imageglass/issues/462" },
+            { label: "Neowin (v10 startup fix)", url: "https://www.neowin.net/software/imageglass-1004819/" }
+          ]
+        },
+        {
+          rank: 5,
+          viewer: "XnView MP + IrfanView",
+          filterKey: "XnView MP",
+          title: "Windows 11 keeps stealing file associations back — and IrfanView has two lists that look like one",
+          scale: 5,
+          people: "4+ distinct posters in the IrfanView thread alone; 9+ posts on ElevenForum",
+          scaleNote: "ElevenForum thread (9+ posts) + IrfanView thread (4+ people) + Tom's Hardware (7+ posts)",
+          trust: false,
+          tags: ["File associations", "Confusing UI"],
+          body: [
+            "Windows 11 forces JPG/PNG associations back to the Photos app even after admin, registry, and \u201COpen with\u201D attempts — and it recurs after updates. Multiple users confirm it hits <strong>both XnView MP and IrfanView</strong>: \u201CSame here, it is not only XnView.\u201D",
+            "IrfanView adds its own version: the \u201Cfile association\u201D list and the \u201Cload custom file types\u201D list are different things, and a mismatch produces a viewer that opens your double-clicked image but reports \u201Cpicture 0/0\u201D with greyed-out arrows. Forum regulars: \u201Cthis has come up before.\u201D The same split explains AVIF files that open on double-click but are skipped during folder navigation."
+          ],
+          rule: "One list, one meaning: if the viewer can open it, it can browse to it. And make association repair a one-click, verifiable action inside the app — users shouldn't need registry edits to keep their default.",
+          sources: [
+            { label: "ElevenForum (XnView default-app failure)", url: "https://www.elevenforum.com/t/cannot-set-xnview-mp-as-default-image-viewer-in-windows-11-25h2-associations-fail-even-with-admin-registry-and-open-with-methods.44636/" },
+            { label: "IrfanView forum (\u201Cno pictures\u201D thread)", url: "https://irfanview-forum.de/forum/program/support/6186-", live: true },
+            { label: "Tom's Hardware (AVIF skipped in browsing)", url: "https://forums.tomshardware.com/threads/irfanview-wont-show-avif-files-when-browsing-folder.3824133/" }
+          ]
+        },
+        {
+          rank: 6,
+          viewer: "Honeyview",
+          title: "\u201CAn image viewer should not connect to the internet without my permission\u201D",
+          scale: 4,
+          people: "Dozens across two threads (15 + 36 posts), recurring over years",
+          scaleNote: "Two multi-year threads (15 + 36 posts) + official discontinuation notice",
+          trust: true,
+          tags: ["Trust violations", "Confusing UI"],
+          body: [
+            "Across years, users kept catching Honeyview making network connections and drawing the obvious conclusion: \u201CAn image viewer should not connect to the internet without my permission. No thanks, honeyview is botnet.\u201D The accusation recurred in 2019 and again in 2020 — never answered convincingly enough to die.",
+            "The coda: Bandisoft ended all technical support for Honeyview in May 2024. The product is dead, so every irritation it ever caused is now permanent. Some users had already left over the UI alone: \u201Ca bad ui which is a dealbreaker for me.\u201D"
+          ],
+          rule: "Zero network egress, ever — and say so plainly. An image viewer has no legitimate reason to phone home, and unexplained connections cost more users than any bug.",
+          sources: [
+            { label: "4archive thread, 2019 (\u201Cphones home\u201D)", url: "https://4archive.org/board/g/thread/71440459/borderless-image-viewer-like-honeyview-thats-not-dead-https-wiki-insta" },
+            { label: "4archive thread, 2020 (36 replies)", url: "https://4archive.org/board/g/thread/75033803/what-image-viewer-does-g-use-ive-been-using-honeyview-since" },
+            { label: "Bandisoft discontinuation notice", url: "https://groups.google.com/g/honeyview-win/c/nAYFDv0Q568" }
+          ]
+        },
+        {
+          rank: 7,
+          viewer: "IrfanView",
+          title: "The default view quietly degrades your pixels — nearest-neighbour moiré, and the fix is filed under the wrong tab",
+          scale: 4,
+          people: "Multiple posters per thread, recurring across decades (exact count not established)",
+          scaleNote: "Perennial across decades; 2 multi-user threads + 2 forum color threads + a 2026 incident",
+          trust: true,
+          tags: ["The viewer lies", "Confusing UI"],
+          body: [
+            "IrfanView downsamples with <strong>nearest-neighbour by default</strong> when fitting images to the display, exaggerating aliasing and moiré — the viewer misrepresents the pixels it's showing you. The high-quality option (\u201CUse Resample function for display options\u201D) is buried under Properties → <em>Fullscreen</em> tab even though it applies to windowed mode too.",
+            "It's a family of honesty failures: the same JPEG renders differently in four viewers with stock settings; IrfanView's JXL plugin double-applied color management (embedded ICC + display profile) producing wrong colors on calibrated monitors until a 2026 plugin fix; and a \u201Ctry to improve gamma for resample\u201D display option silently <strong>changes the in-memory image data</strong>, corrupting the histogram — a viewing preference that mutates content."
+          ],
+          rule: "High-quality resampling is the default, not a treasure hunt. Display options never mutate image data. If color management is on, it's on exactly once — and the pixel values stay verifiable.",
+          sources: [
+            { label: "PC Review (interference patterns / moiré)", url: "https://www.pcreview.co.uk/threads/irfanview-interference-patterns.2266576/" },
+            { label: "BCG Forums (same JPEG, 4 viewers compared)", url: "https://bcgforums.com/threads/4-image-viewers-and-what-they-display-on-my-screen.5420/" },
+            { label: "JXL double color management (2026)", url: "https://github.com/rsilvabr/jxl-photo/blob/HEAD/docs/bugs_fixes_explained.md" }
+          ]
+        },
+        {
+          rank: 8,
+          viewer: "nomacs",
+          title: "Silent failures: the filter that clears, ratings that vanish, thumbnails that erase EXIF orientation",
+          scale: 4,
+          people: "3 confirmed in #502 alone; cluster-wide count not verified",
+          scaleNote: "~13 linked issues; per-issue comment counts not individually verified",
+          trust: true,
+          tags: ["Silent failures", "Trust violations", "Fullscreen & slideshow"],
+          body: [
+            "A cluster of \u201Cthe viewer lies or loses things\u201D bugs: the filter/search menu <strong>clears the file list instead of filtering</strong> (#1593); star ratings silently disappear (#1482); generating thumbnails <strong>clears EXIF orientation</strong> from your files (#1510); RAW+JPEG pairing hides files users expected to see (#1587).",
+            "And the unrecoverable UI state: entering fullscreen hides the filmstrip with no way to get it back (#1590), and toggling F11 doesn't re-fit the image, leaving only part of it visible (#502 — three people chimed in). None of these announce themselves; users discover them after the damage."
+          ],
+          rule: "Fail loudly or not at all — every action visibly succeeds or says why it didn't. Read-only operations (thumbnails!) never write to the file. Every UI state has a visible way back.",
+          sources: [
+            { label: "nomacs issues backlog (competitor research doc)", url: "https://github.com/reatom/reatom/blob/HEAD/examples/reatom-jsx-gallery/docs/competitors/nomacs-issues-backlog.md" },
+            { label: "nomacs issue #502 (F11 doesn't re-fit)", url: "https://github.com/nomacs/nomacs/issues/502" }
+          ]
+        },
+        {
+          rank: 9,
+          viewer: "qView",
+          title: "Scroll-zoom that resizes the window instead of the image — frustrating enough to fork over",
+          scale: 3,
+          people: "At least 2 users frustrated enough to maintain forks",
+          scaleNote: "Two maintained feature forks + upstream changelog entries",
+          trust: false,
+          tags: ["Zoom & navigation input", "Speed & startup"],
+          body: [
+            "qView's scroll-zoom scales the <strong>window</strong> up and down rather than zooming into the image. One user built an entire fork \u201Csolely from frustration\u201D to get JPEGView-style zoom, calling it \u201Ca make-or-break feature.\u201D",
+            "The popular jdpurcell fork's feature list reads as a catalog of upstream gaps: no zoom level shown in the titlebar, zoom not preserved between images, no \u201Cfill window\u201D mode, no customizable mouse actions, slow rapid navigation, windows jumping position after sizing to the image. Upstream's own changelog confirms earlier pain: image switching \u201Cmuch slower than expected\u201D in large folders, slowness opening files from network shares."
+          ],
+          rule: "Zoom scales the image, never the window. The zoom percentage is always visible, and it survives navigation to the next photo. Mouse actions are remappable.",
+          sources: [
+            { label: "poodledeer/qView fork (\u201Csolely from frustration\u201D)", url: "https://github.com/poodledeer/qview" },
+            { label: "jdpurcell/qView fork (gap catalog)", url: "https://github.com/jdpurcell/qview" },
+            { label: "qView releases (slow-switching fixes)", url: "https://github.com/jurplel/qView/releases" }
+          ]
+        },
+        {
+          rank: 10,
+          viewer: "XnView MP",
+          title: "Slow switching, slow thumbnails — and a UI newcomers call overwhelming",
+          scale: 3,
+          people: "Reviewers and changelog authors; end-user count not established",
+          scaleNote: "Official changelog fixes (v1.9.5, Oct 2025) + professional review + aggregator cons",
+          trust: false,
+          tags: ["Speed & startup", "Confusing UI"],
+          body: [
+            "\u201CSlow switching between images\u201D and \u201CSlow thumbnails loading\u201D were significant enough to headline the v1.9.5 fixes in October 2025 — performance regressions users feel on every single keypress.",
+            "Reviewers describe the interface as \u201Coverwhelming to new users, due to its myriad options and settings and somewhat confusing Browser mode,\u201D \u201Ca bit clunky,\u201D with download sites listing \u201CInterface may feel outdated\u201D as the standing con. Power that can't be found is friction wearing a feature's clothes."
+          ],
+          rule: "Next-image latency is a feature — budget for it and measure it. And stage the power: a calm surface by default, depth one click away, not a wall of options on first launch.",
+          sources: [
+            { label: "OlderGeeks (v1.9.5 changelog)", url: "https://www.oldergeeks.com/downloads/file.php?id=4122" },
+            { label: "dedoimedo review via Tux Machines (2022)", url: "http://news.tuxmachines.org/node/166358" },
+            { label: "FileHorse (cons: outdated interface)", url: "https://www.filehorse.com/download-xnview-mp/?amp" }
+          ]
+        },
+        {
+          rank: 11,
+          viewer: "FastStone",
+          title: "Delete bypasses the Recycle Bin — and the \u201CRAW\u201D you're comparing is an embedded JPEG",
+          scale: 3,
+          people: "Several posters across two forum threads (exact count not established)",
+          scaleNote: "Two focused multi-reply threads + a cons list",
+          trust: true,
+          tags: ["Trust violations", "The viewer lies", "Format support gaps"],
+          body: [
+            "Deleting files from FastStone does <strong>not</strong> use the Recycle Bin. A DPReview warning thread tells the story: a user lost a folder of RAW images permanently — \u201Cthey are not there.\u201D One default, unrecoverable data loss.",
+            "The quieter dishonesty: for RAW files FastStone displays the <strong>embedded JPEG preview</strong> inside the RAW rather than the RAW data itself, so a RAW-vs-JPEG comparison shows no difference — the viewer misrepresents the image while appearing to show it. (Picasa showed the real difference.) Around the edges: broken SVG support, multi-second GUI-thread stalls, and an odd 30-character filename limit reported by reviewers."
+          ],
+          rule: "Delete always goes through the Recycle Bin — no exceptions, no settings. And if a preview stands in for real data, the viewer says so on screen; a comparison tool must never show you a proxy and call it the file.",
+          sources: [
+            { label: "DPReview (Recycle Bin warning thread)", url: "https://www.dpreview.com/forums/threads/faststone-image-viewer-warning.2922829/" },
+            { label: "Pentax Forums (embedded-JPEG compare)", url: "https://www.pentaxforums.com/forums/32-digital-processing-software-printing/202524-problem-comparing-images-faststone-image-viewer.html" },
+            { label: "Slant (FastStone cons)", url: "https://www.slant.co/options/18301/~faststone-image-viewer-review" }
+          ]
+        },
+        {
+          rank: 12,
+          viewer: "IrfanView",
+          title: "The perennial pile: broken GIFs, flattened transparency, a flock of windows, and a \u201CWindows 95\u201D face",
+          scale: 2,
+          people: "A handful per complaint — small counts, very long lifespan",
+          scaleNote: "Each 1–2 threads or single cons-list entries — low volume, long lifespan",
+          trust: false,
+          tags: ["Format support gaps", "Zoom & navigation input", "Confusing UI"],
+          body: [
+            "GIF viewing is buggy — flickering, wrong framerate, artifacts — \u201Cvery unlikely that it will be ever fixed.\u201D Transparency is flattened to the background color on open, and fullscreen forces the background to black regardless of the setting. Selecting random files in Explorer opens a <em>bunch of windows</em>, and navigation then steps through every file in the folder, not just the ones selected.",
+            "The window itself jumps to the top-left corner when you step to a larger image (a regression from v4.44). And the standing aesthetic verdict, from ResetEra: \u201Cit looks like a windows 95 program,\u201D with preferences that are hard to find even when you know they exist."
+          ],
+          rule: "Respect the selection the user made — open what they picked, navigate what they picked. Animation timing and alpha are part of the image, not decoration. Windows stay where the user put them.",
+          sources: [
+            { label: "Slant: IrfanView vs Photos (cons)", url: "https://www.slant.co/versus/11869/33532/~irfanview_vs_microsoft-photos" },
+            { label: "IrfanView forum (won't close multiple windows)", url: "https://irfanview-forum.de/forum/program/support/3806-" },
+            { label: "ResetEra viewer thread (\u201Cwindows 95 program\u201D)", url: "https://www.resetera.com/threads/need-recommendations-on-image-viewers-for-windows-what-are-some-of-your-favorites.402646/" }
+          ]
+        },
+        {
+          rank: 13,
+          viewer: "ImageGlass",
+          title: "Explorer thumbnails replaced by a logo — plus the trust-killers fixed in v10.0.6",
+          scale: 2,
+          people: "Individual reporters per issue",
+          scaleNote: "Single issues each, named in the official changelog",
+          trust: true,
+          tags: ["Trust violations", "The viewer lies"],
+          body: [
+            "Setting ImageGlass as default replaced Explorer thumbnails with a generic logo after refresh (#1989) — shell integration reaching further than the user asked it to.",
+            "The same v10.0.6 release that fixed the settings race also fixed \u201Cinstantly closing when saving could corrupt image\u201D (#2444) and \u201Ccrashed due to monitor color profile\u201D (#2445). A viewer that can corrupt the file it's saving, or crash on a calibrated monitor, breaks the one promise that matters: <em>open it and it's safe</em>."
+          ],
+          rule: "Shell integration is opt-in and conservative. Saving is transactional — the original survives any failure. Color profiles are data to honor, never a crash vector.",
+          sources: [
+            { label: "Issue #1989 (Explorer thumbnail hijack)", url: "https://github.com/d2phap/ImageGlass/issues/1989" },
+            { label: "ImageGlass releases (fixes #2444, #2445)", url: "https://github.com/d2phap/ImageGlass/releases" }
+          ]
+        }
+      ];
+
+      var MANIFESTO = [
+        { n: "01", title: "One input, one action", text: "The wheel zooms or it navigates — never both, never depending on invisible state like scrollbar visibility. In fullscreen, input behaves exactly as it does windowed.", answers: "Answers #1, #3" },
+        { n: "02", title: "Zoom means the image", text: "Scroll-zoom scales the picture, not the window. The zoom percentage is always on screen, and zoom level survives stepping to the next photo.", answers: "Answers #1, #9" },
+        { n: "03", title: "Honest pixels by default", text: "High-quality resampling out of the box. When a preview stands in for real data, the UI says so. What you see is the file — verifiably, with inspection tools to prove it.", answers: "Answers #7, #11" },
+        { n: "04", title: "Display settings never touch data", text: "Nothing under \u201Cviewing preferences\u201D may alter pixels, metadata, or files. Thumbnails are read-only. A display option that mutates content is a bug by definition.", answers: "Answers #7, #8" },
+        { n: "05", title: "Delete goes to the Recycle Bin", text: "Destructive actions always pass through the OS safety net. No viewer-side permanent delete, no exceptions buried in settings.", answers: "Answers #11" },
+        { n: "06", title: "Settings stick", text: "Atomic, single-owner config writes. Multiple instances can't corrupt each other. An update never resets what the user chose.", answers: "Answers #2" },
+        { n: "07", title: "No phone home", text: "Zero network traffic, stated plainly. An image viewer has no business on the network, and users punish unexplained connections by leaving forever.", answers: "Answers #6" },
+        { n: "08", title: "Fast, and never frozen", text: "Sub-second launch; decoding off the UI thread; a spinner instead of a locked window. Slow drives and big folders degrade to a progress bar, not a hang.", answers: "Answers #4, #10" },
+        { n: "09", title: "Familiar keys, no dead ends", text: "F11 is fullscreen, as it is everywhere else. Every mode has a visible exit. Nothing hides — filmstrip, toolbar, anything — without an obvious way back.", answers: "Answers #3, #8" },
+        { n: "10", title: "Fail loudly", text: "An action that can't complete says so, in words, where the user can see them. Silent no-ops and silent data changes are how trust dies.", answers: "Answers #8" },
+        { n: "11", title: "One list, one meaning", text: "If the viewer can open a format, it can browse to it. File associations are repairable from inside the app in one click — no registry archaeology.", answers: "Answers #5" },
+        { n: "12", title: "Respect the selection", text: "Open what the user picked; navigate what the user picked; keep windows where the user left them. The viewer's job is to follow, not to improvise.", answers: "Answers #12" }
+      ];
+
+      var TALLY = [
+        { name: "Zoom & navigation input", viewers: 3, note: "IrfanView, qView, nomacs" },
+        { name: "Confusing or dated UI", viewers: 3, note: "IrfanView, XnView MP, Honeyview" },
+        { name: "Fullscreen & slideshow quirks", viewers: 3, note: "ImageGlass, nomacs, FastStone" },
+        { name: "Speed & startup", viewers: 3, note: "ImageGlass, XnView MP, qView" },
+        { name: "Trust violations", viewers: 3, note: "FastStone, Honeyview, ImageGlass" },
+        { name: "File-association hijacking", viewers: 2, note: "XnView MP, IrfanView" },
+        { name: "\u201CThe viewer lies\u201D", viewers: 2, note: "IrfanView, FastStone" },
+        { name: "Format support gaps", viewers: 2, note: "IrfanView, FastStone" },
+        { name: "Settings don't persist", viewers: 1, note: "ImageGlass" },
+        { name: "Silent failures & data loss", viewers: 1, note: "nomacs" }
+      ];
+
+      var SCALE_LABELS = { 5: "Loudest", 4: "Loud", 3: "Widely felt", 2: "Persistent" };
+
+      function meterHTML(scale) {
+        var s = "";
+        for (var i = 0; i < 5; i++) s += "<i class='" + (i < scale ? "on" : "") + "'></i>";
+        return "<span class='meter' aria-hidden='true'>" + s + "</span>";
+      }
+
+      var entriesEl = document.getElementById("entries");
+      FINDINGS.forEach(function (f) {
+        var art = document.createElement("article");
+        art.className = "entry" + (f.rank <= 3 ? " top" : "");
+        art.setAttribute("data-viewer", f.filterKey || f.viewer);
+        art.setAttribute("data-trust", f.trust ? "1" : "0");
+
+        var bodyHTML = f.body.map(function (p) { return "<p>" + p + "</p>"; }).join("");
+        var tagsHTML = f.tags.map(function (t) { return "<span class='ptag'>" + t + "</span>"; }).join("");
+        var srcHTML = f.sources.map(function (s) {
+          return "<a href='" + s.url + "' target='_blank' rel='noopener noreferrer'>" + s.label + "</a>" +
+            (s.live ? "<span class='verified'>(read live)</span> " : "");
+        }).join("");
+
+        art.innerHTML =
+          "<div class='rank' aria-label='Rank " + f.rank + "'>" + f.rank + "</div>" +
+          "<div>" +
+            "<h2>" + f.title + "</h2>" +
+            "<div class='meta-line'>" +
+              "<span class='viewer-tag'>" + f.viewer + "</span>" +
+              (f.trust ? "<span class='trust-flag'>Costs data or trust</span>" : "") +
+              "<span class='people'><span class='people-label'>People chiming in</span>" + f.people + "</span>" +
+            "</div>" +
+            "<div class='loudness'>" + meterHTML(f.scale) + "<span>Discussion volume: " + SCALE_LABELS[f.scale] + " · " + f.scaleNote + "</span></div>" +
+            bodyHTML +
+            "<div class='tag-row'>" + tagsHTML + "</div>" +
+            "<div class='rule'><span class='rule-label'>The pre-avoidance</span><p>" + f.rule + "</p></div>" +
+            "<p class='sources'><span class='src-label'>Sources</span>" + srcHTML + "</p>" +
+          "</div>";
+        entriesEl.appendChild(art);
+      });
+
+      var tallyEl = document.getElementById("tally");
+      TALLY.forEach(function (t) {
+        var row = document.createElement("div");
+        row.className = "tally-row";
+        row.innerHTML =
+          "<span class='tname' title='" + t.note + "'>" + t.name + "</span>" +
+          "<span class='tbar'><i style='width:" + (t.viewers / 3 * 100) + "%'></i></span>" +
+          "<span class='tnum'>" + t.viewers + " / 7</span>";
+        tallyEl.appendChild(row);
+      });
+
+      var manifestoEl = document.getElementById("manifesto");
+      MANIFESTO.forEach(function (m) {
+        var d = document.createElement("div");
+        d.className = "tenet";
+        d.innerHTML =
+          "<span class='t-num'>Rule " + m.n + "</span>" +
+          "<h3>" + m.title + "</h3>" +
+          "<p>" + m.text + "</p>" +
+          "<span class='answers'>" + m.answers + "</span>";
+        manifestoEl.appendChild(d);
+      });
+
+      /* filtering */
+      var activeViewer = "all";
+      var trustOnly = false;
+      var countLine = document.getElementById("countLine");
+      var emptyState = document.getElementById("emptyState");
+
+      function applyFilters() {
+        var shown = 0;
+        var articles = entriesEl.querySelectorAll(".entry");
+        articles.forEach(function (a) {
+          var v = a.getAttribute("data-viewer");
+          var okViewer = activeViewer === "all" || v === activeViewer;
+          var okTrust = !trustOnly || a.getAttribute("data-trust") === "1";
+          var show = okViewer && okTrust;
+          a.style.display = show ? "" : "none";
+          if (show) shown++;
+        });
+        countLine.textContent = "Showing " + shown + " of " + FINDINGS.length + " findings" +
+          (activeViewer !== "all" ? " · " + activeViewer : "") +
+          (trustOnly ? " · data/trust severity only" : "");
+        emptyState.style.display = shown === 0 ? "block" : "none";
+      }
+
+      var viewerBtns = document.querySelectorAll("#viewerFilters .chip");
+      viewerBtns.forEach(function (b) {
+        b.addEventListener("click", function () {
+          activeViewer = b.getAttribute("data-viewer");
+          viewerBtns.forEach(function (x) { x.setAttribute("aria-pressed", x === b ? "true" : "false"); });
+          applyFilters();
+        });
+      });
+
+      var trustToggle = document.getElementById("trustToggle");
+      trustToggle.addEventListener("click", function () {
+        trustOnly = !trustOnly;
+        trustToggle.setAttribute("aria-pressed", trustOnly ? "true" : "false");
+        applyFilters();
+      });
+
+      function resetAll() {
+        activeViewer = "all";
+        trustOnly = false;
+        trustToggle.setAttribute("aria-pressed", "false");
+        viewerBtns.forEach(function (x) {
+          x.setAttribute("aria-pressed", x.getAttribute("data-viewer") === "all" ? "true" : "false");
+        });
+        applyFilters();
+      }
+      document.getElementById("resetFilters").addEventListener("click", resetAll);
+      document.getElementById("emptyReset").addEventListener("click", resetAll);
+
+      applyFilters();
+    </script>
+  </body>
+</html>
